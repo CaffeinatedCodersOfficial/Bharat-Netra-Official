@@ -21,7 +21,6 @@ function formatData({ whoisData }) {
   whoisData?.split("\n").forEach((line) => {
     const [key, ...rest] = line.split(":");
     if (key && rest.length) {
-      // Handle multiple lines for the same key (like Domain Status, Name Server)
       const value = rest.join(":").trim();
       if (formattedData[key]) {
         if (Array.isArray(formattedData[key])) {

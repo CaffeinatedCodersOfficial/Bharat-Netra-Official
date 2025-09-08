@@ -1,6 +1,5 @@
 import dns from "dns";
 
-// Common subdomains dictionary
 const commonSubdomains = [
   "www",
   "mail",
@@ -163,7 +162,6 @@ const commonSubdomains = [
   "qa-api",
 ];
 
-// Helper function to resolve subdomain
 const resolveSubdomain = (sub, domain) =>
   new Promise((resolve) => {
     dns.resolve(`${sub}.${domain}`, "A", (err, addresses) => {
@@ -175,7 +173,6 @@ const resolveSubdomain = (sub, domain) =>
     });
   });
 
-// Controller function
 export const discoverSubdomains = async (req, res) => {
   const { domain } = req.body;
 

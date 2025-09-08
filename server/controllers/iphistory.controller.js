@@ -1,4 +1,3 @@
-// controllers/ipHistory.controller.js
 import * as cheerio from "cheerio";
 import axios from "axios";
 
@@ -13,7 +12,6 @@ export const getIpHistory = async (req, res) => {
     let records = [];
 
     if (apiKey) {
-      // Use official API if key exists
       const url = `https://api.viewdns.info/iphistory/?domain=${domain}&apikey=${apiKey}&output=json`;
       const { data } = await axios.get(url);
       console.log("✅ API Response:", data);
@@ -25,10 +23,9 @@ export const getIpHistory = async (req, res) => {
             location: r.location,
             lastSeen: r.lastseen,
           }))
-          .filter((r) => r.ip && r.ip.includes(".") && r.lastSeen); // keep only meaningful IPv4
+          .filter((r) => r.ip && r.ip.includes(".") && r.lastSeen);
       }
     } else {
-      // Scrape HTML if no API key
       const url = `https://viewdns.info/iphistory/?domain=${domain}`;
       const { data } = await axios.get(url, {
         headers: { "User-Agent": "Mozilla/5.0" },
@@ -38,14 +35,13 @@ export const getIpHistory = async (req, res) => {
 
       const $ = cheerio.load(data);
       $("table tr").each((i, row) => {
-        if (i === 0) return; // skip header
+        if (i === 0) return;
         const cols = $(row).find("td");
         if (cols.length >= 3) {
           const ip = $(cols[0]).text().trim();
           const location = $(cols[1]).text().trim();
           let lastSeen = $(cols[2]).text().trim();
 
-          // Validate lastSeen looks like a date (simple check)
           if (!/\d{4}-\d{2}-\d{2}/.test(lastSeen)) lastSeen = null;
 
           if (ip && ip.includes(".") && lastSeen) {
@@ -55,7 +51,6 @@ export const getIpHistory = async (req, res) => {
       });
     }
 
-    // Remove duplicate IPs (keep first occurrence)
     const seen = new Set();
     records = records.filter((r) => {
       if (seen.has(r.ip)) return false;
@@ -63,7 +58,6 @@ export const getIpHistory = async (req, res) => {
       return true;
     });
 
-    // Optional: limit to top 10 most recent
     records = records.slice(0, 10);
 
     return res.json({ records });
