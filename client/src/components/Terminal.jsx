@@ -21,6 +21,7 @@ const tools = [
 ];
 
 const Terminal = () => {
+  const backendUrl = "https://bharat-netra-official.onrender.com"
   const [selectedTool, setSelectedTool] = useState(null);
   const [history, setHistory] = useState([]);
   const [inputValue, setInputValue] = useState("");
@@ -69,8 +70,8 @@ const Terminal = () => {
     try {
       // WHOIS Lookup
       if (selectedTool === "WHOIS Lookup") {
-        const res = await axios.post(
-          "http://localhost:4000/api/domain/domain-info",
+        const res = await axios.post(backendUrl+
+          "/api/domain/domain-info",
           { domain: command }
         );
         setTimeout(() => {
@@ -81,8 +82,8 @@ const Terminal = () => {
 
       // Subdomain Finder
       else if (selectedTool === "Subdomain Finder") {
-        const res = await axios.post(
-          "http://localhost:4000/api/subdomain/discover-subdomain",
+        const res = await axios.post(backendUrl +
+          "/api/subdomain/discover-subdomain",
           { domain: command }
         );
         setTimeout(() => {
@@ -99,8 +100,8 @@ const Terminal = () => {
 
       // IP History Lookup
       else if (selectedTool === "IP History Lookup") {
-        const res = await axios.get(
-          `http://localhost:4000/api/ip/ip-history?domain=${command}`
+        const res = await axios.get(backendUrl+
+          `/api/ip/ip-history?domain=${command}`
         );
         setTimeout(() => {
           if (res.data.records && res.data.records.length > 0) {
