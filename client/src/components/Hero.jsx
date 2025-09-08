@@ -3,7 +3,7 @@ import earthBg from "../../public/EarthBg.jpeg"
 import LightRays from './LightRays'
 const Hero = () => {
   return (
-    <div className='w-full h-[100dvh] bg-cover relative overflow-hidden '>
+    <div className='w-full h-[100dvh] bg-cover relative  overflow-hidden'>
         <div style={{ width: '100%', height: '100%', position: 'absolute' }} className=''>
             <LightRays
                 raysOrigin="top-center"
@@ -18,8 +18,9 @@ const Hero = () => {
                 className="custom-rays bg-transparent"
             />
         </div>
-        <div className='bg-cover scale-125 mr-8'>
+        <div className='bg-cover scale-125 mr-8 '>
             <img src={earthBg} alt="" className=''/>
+            
         </div>
         <div className='bg-[black]/25 inset-0 absolute'></div>
         <div className='absolute inset-0 flex flex-col justify-start items-center pt-[130px]'>
