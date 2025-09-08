@@ -1,10 +1,11 @@
 import React from "react";
 import Hero from "../components/Hero";
 import Terminal from "../components/Terminal";
+import About from "../components/About";
 
 const HomePage = () => {
   return (
-    <div className="w-full">
+    <div className="w-full min-h-[200vh] h-auto">
       {/* Sticky scroll section */}
       <div className="relative h-[200vh]">
         {/* Hero stays fixed at top */}
@@ -19,8 +20,8 @@ const HomePage = () => {
       </div>
 
       {/* More content after */}
-      <div className="h-[100vh] flex items-center justify-center">
-        <h1 className="text-4xl font-bold">Next Section</h1>
+      <div className="h-[100vh] mt-[25vh] flex items-center justify-center">
+        <About/>
       </div>
     </div>
   );
