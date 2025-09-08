@@ -24,10 +24,10 @@ const About = () => {
       </p>
 
       {/* Features Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl w-full">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl w-full">
         {[
           { icon: ShieldCheck, title: "Cyber Defense", desc: "Advanced tools to detect, monitor, and prevent cyber threats in real-time." },
-          { icon: Cpu, title: "AI-Powered Insights", desc: "Leverage artificial intelligence to analyze patterns and predict potential breaches." },
+          
           { icon: Terminal, title: "Investigation Tools", desc: "Forensics-ready utilities to assist in tracking digital footprints and evidence gathering." },
           { icon: Lock, title: "Data Protection", desc: "Strong encryption and secure access management for sensitive information." },
         ].map((tool, i) => {
