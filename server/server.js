@@ -6,6 +6,8 @@ import connectDB from "./configs/mongodb.config.js";
 import domainInfoRouter from "./routes/domain.info.route.js";
 import subdomainRouter from "./routes/subdomain.route.js";
 import ipHistoryRouter from "./routes/iphistory.route.js";
+import checkMalwareRouter from "./routes/checkMalware.route.js";
+import portScannerRouter from "./routes/portScanner.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -29,6 +31,8 @@ app.get("/", (req, res) => {
 app.use("/api/domain/", domainInfoRouter);
 app.use("/api/subdomain/", subdomainRouter);
 app.use("/api/ip/", ipHistoryRouter);
+app.use("/api/malware/", checkMalwareRouter);
+app.use("/api/ports/", portScannerRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

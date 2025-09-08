@@ -17,11 +17,37 @@ const tools = [
   "Mobile Carrier Lookup",
   "Reverse Image Search",
   "Email Validator",
-  "MAC Address Lookup"
+  "MAC Address Lookup",
 ];
 
+// Helper to summarize Malware Check results
+function summarizeMalwareData(data) {
+  const stats = data.attributes.last_analysis_stats;
+  const totalEngines = Object.values(stats).reduce((a, b) => a + b, 0);
+
+  let status = "Safe";
+  if (stats.malicious > 0) status = "Malicious";
+  else if (stats.suspicious > 0) status = "Suspicious";
+
+  const maliciousEngines = [];
+  const results = data.attributes.last_analysis_results;
+  for (let engine in results) {
+    if (results[engine].category === "malicious") {
+      maliciousEngines.push(engine);
+    }
+  }
+
+  return {
+    url: data.attributes.url,
+    status,
+    summary: `${stats.malicious} / ${totalEngines} engines flagged this URL as malicious.`,
+    maliciousEngines,
+  };
+}
+
 const Terminal = () => {
-  const backendUrl = "https://bharat-netra-official.onrender.com"
+  // const backendUrl = "http://localhost:4000";
+  const backendUrl = "https://bharat-netra-official.onrender.com";
   const [selectedTool, setSelectedTool] = useState(null);
   const [history, setHistory] = useState([]);
   const [inputValue, setInputValue] = useState("");
@@ -70,8 +96,8 @@ const Terminal = () => {
     try {
       // WHOIS Lookup
       if (selectedTool === "WHOIS Lookup") {
-        const res = await axios.post(backendUrl+
-          "/api/domain/domain-info",
+        const res = await axios.post(
+          backendUrl + "/api/domain/domain-info",
           { domain: command }
         );
         setTimeout(() => {
@@ -82,8 +108,8 @@ const Terminal = () => {
 
       // Subdomain Finder
       else if (selectedTool === "Subdomain Finder") {
-        const res = await axios.post(backendUrl +
-          "/api/subdomain/discover-subdomain",
+        const res = await axios.post(
+          backendUrl + "/api/subdomain/discover-subdomain",
           { domain: command }
         );
         setTimeout(() => {
@@ -100,8 +126,8 @@ const Terminal = () => {
 
       // IP History Lookup
       else if (selectedTool === "IP History Lookup") {
-        const res = await axios.get(backendUrl+
-          `/api/ip/ip-history?domain=${command}`
+        const res = await axios.get(
+          backendUrl + `/api/ip/ip-history?domain=${command}`
         );
         setTimeout(() => {
           if (res.data.records && res.data.records.length > 0) {
@@ -114,6 +140,61 @@ const Terminal = () => {
           } else {
             setHistory((prev) => [...prev, "No IP history found"]);
           }
+          setLoading(false);
+        }, 800);
+      }
+
+      // Malware Check (summarized)
+      else if (selectedTool === "Malware Check") {
+        const res = await axios.post(backendUrl + "/api/malware/check-malware", {
+          url: command,
+        });
+
+        setTimeout(() => {
+          if (res.data && res.data.data) {
+            const summary = summarizeMalwareData(res.data.data);
+            setHistory((prev) => [
+              ...prev,
+              `Malware Check Result for ${summary.url}:`,
+              `Status: ${summary.status}`,
+              summary.summary,
+              summary.maliciousEngines.length
+                ? `Malicious engines: ${summary.maliciousEngines.join(", ")}`
+                : "No malicious engines detected",
+            ]);
+          } else {
+            setHistory((prev) => [
+              ...prev,
+              `No malware information found for ${command}`,
+            ]);
+          }
+          setLoading(false);
+        }, 800);
+      }
+
+      // Port Scanner
+      else if (selectedTool === "Port Scanner") {
+        // Expected input format: "example.com 80,443,8080"
+        const [host, portsStr] = command.split(" ");
+        if (!host || !portsStr) {
+          setHistory((prev) => [
+            ...prev,
+            "❌ Invalid input. Use: hostname port1,port2,...",
+          ]);
+          setLoading(false);
+          return;
+        }
+
+        const ports = portsStr.split(",").map((p) => parseInt(p.trim()));
+        const res = await axios.post(`${backendUrl}/api/ports/scan-ports`, {
+          host,
+          ports,
+        });
+
+        setTimeout(() => {
+          res.data.results.forEach((r) => {
+            setHistory((prev) => [...prev, `Port ${r.port}: ${r.status}`]);
+          });
           setLoading(false);
         }, 800);
       }
@@ -212,6 +293,10 @@ const Terminal = () => {
                       ? "Enter domain to discover subdomains..."
                       : selectedTool === "IP History Lookup"
                       ? "Enter domain to check IP history..."
+                      : selectedTool === "Malware Check"
+                      ? "Enter URL to check for malware..."
+                      : selectedTool === "Port Scanner"
+                      ? "Enter host and ports (example.com 80,443,8080)..."
                       : "Enter your domain..."
                   }
                   autoFocus
