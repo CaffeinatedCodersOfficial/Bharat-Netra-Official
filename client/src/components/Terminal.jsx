@@ -17,11 +17,11 @@ const tools = [
   "Mobile Carrier Lookup",
   "Reverse Image Search",
   "Email Validator",
-  "MAC Address Lookup"
+  "MAC Address Lookup",
 ];
 
 const Terminal = () => {
-  const backendUrl = "https://bharat-netra-official.onrender.com"
+  const backendUrl = "https://bharat-netra-official.onrender.com";
   const [selectedTool, setSelectedTool] = useState(null);
   const [history, setHistory] = useState([]);
   const [inputValue, setInputValue] = useState("");
@@ -70,10 +70,9 @@ const Terminal = () => {
     try {
       // WHOIS Lookup
       if (selectedTool === "WHOIS Lookup") {
-        const res = await axios.post(backendUrl+
-          "/api/domain/domain-info",
-          { domain: command }
-        );
+        const res = await axios.post(backendUrl + "/api/domain/domain-info", {
+          domain: command,
+        });
         setTimeout(() => {
           setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
           setLoading(false);
@@ -82,14 +81,14 @@ const Terminal = () => {
 
       // Subdomain Finder
       else if (selectedTool === "Subdomain Finder") {
-        const res = await axios.post(backendUrl +
-          "/api/subdomain/discover-subdomain",
-          { domain: command }
+        const res = await axios.post(
+          backendUrl + "/api/subdomain/discover-subdomain",
+          { domain: command },
         );
         setTimeout(() => {
           if (res.data.subdomains && res.data.subdomains.length > 0) {
             res.data.subdomains.forEach((sub) =>
-              setHistory((prev) => [...prev, sub])
+              setHistory((prev) => [...prev, sub]),
             );
           } else {
             setHistory((prev) => [...prev, "No subdomains found"]);
@@ -100,8 +99,8 @@ const Terminal = () => {
 
       // IP History Lookup
       else if (selectedTool === "IP History Lookup") {
-        const res = await axios.get(backendUrl+
-          `/api/ip/ip-history?domain=${command}`
+        const res = await axios.get(
+          backendUrl + `/api/ip/ip-history?domain=${command}`,
         );
         setTimeout(() => {
           if (res.data.records && res.data.records.length > 0) {
@@ -116,8 +115,18 @@ const Terminal = () => {
           }
           setLoading(false);
         }, 800);
+      } else if (selectedTool === "Email Validator") {
+        const res = await axios.post(backendUrl + "/api/email/validate-email", {
+          email: command,
+        });
+        setTimeout(() => {
+          if (res.data) {
+            console.log(res.data);
+            setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
+            setLoading(false);
+          }
+        }, 800);
       }
-
       // Placeholder for other tools
       else {
         setTimeout(() => {
@@ -211,8 +220,8 @@ const Terminal = () => {
                     selectedTool === "Subdomain Finder"
                       ? "Enter domain to discover subdomains..."
                       : selectedTool === "IP History Lookup"
-                      ? "Enter domain to check IP history..."
-                      : "Enter your domain..."
+                        ? "Enter domain to check IP history..."
+                        : "Enter your domain..."
                   }
                   autoFocus
                 />
