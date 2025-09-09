@@ -20,6 +20,31 @@ const tools = [
   "MAC Address Lookup",
 ];
 
+// Helper to summarize Malware Check results
+function summarizeMalwareData(data) {
+  const stats = data.attributes.last_analysis_stats;
+  const totalEngines = Object.values(stats).reduce((a, b) => a + b, 0);
+
+  let status = "Safe";
+  if (stats.malicious > 0) status = "Malicious";
+  else if (stats.suspicious > 0) status = "Suspicious";
+
+  const maliciousEngines = [];
+  const results = data.attributes.last_analysis_results;
+  for (let engine in results) {
+    if (results[engine].category === "malicious") {
+      maliciousEngines.push(engine);
+    }
+  }
+
+  return {
+    url: data.attributes.url,
+    status,
+    summary: `${stats.malicious} / ${totalEngines} engines flagged this URL as malicious.`,
+    maliciousEngines,
+  };
+}
+
 const Terminal = () => {
   const backendUrl = "https://bharat-netra-official.onrender.com";
   const [selectedTool, setSelectedTool] = useState(null);
@@ -115,7 +140,9 @@ const Terminal = () => {
           }
           setLoading(false);
         }, 800);
-      } else if (selectedTool === "Email Validator") {
+      }
+      // Email Validator Tool
+      else if (selectedTool === "Email Validator") {
         const res = await axios.post(backendUrl + "/api/email/validate-email", {
           email: command,
         });
@@ -127,6 +154,65 @@ const Terminal = () => {
           }
         }, 800);
       }
+
+      // Malware Check (summarized)
+      else if (selectedTool === "Malware Check") {
+        const res = await axios.post(
+          backendUrl + "/api/malware/check-malware",
+          {
+            url: command,
+          },
+        );
+
+        setTimeout(() => {
+          if (res.data && res.data.data) {
+            const summary = summarizeMalwareData(res.data.data);
+            setHistory((prev) => [
+              ...prev,
+              `Malware Check Result for ${summary.url}:`,
+              `Status: ${summary.status}`,
+              summary.summary,
+              summary.maliciousEngines.length
+                ? `Malicious engines: ${summary.maliciousEngines.join(", ")}`
+                : "No malicious engines detected",
+            ]);
+          } else {
+            setHistory((prev) => [
+              ...prev,
+              `No malware information found for ${command}`,
+            ]);
+          }
+          setLoading(false);
+        }, 800);
+      }
+
+      // Port Scanner
+      else if (selectedTool === "Port Scanner") {
+        // Expected input format: "example.com 80,443,8080"
+        const [host, portsStr] = command.split(" ");
+        if (!host || !portsStr) {
+          setHistory((prev) => [
+            ...prev,
+            "❌ Invalid input. Use: hostname port1,port2,...",
+          ]);
+          setLoading(false);
+          return;
+        }
+
+        const ports = portsStr.split(",").map((p) => parseInt(p.trim()));
+        const res = await axios.post(`${backendUrl}/api/ports/scan-ports`, {
+          host,
+          ports,
+        });
+
+        setTimeout(() => {
+          res.data.results.forEach((r) => {
+            setHistory((prev) => [...prev, `Port ${r.port}: ${r.status}`]);
+          });
+          setLoading(false);
+        }, 800);
+      }
+
       // Placeholder for other tools
       else {
         setTimeout(() => {
@@ -221,7 +307,13 @@ const Terminal = () => {
                       ? "Enter domain to discover subdomains..."
                       : selectedTool === "IP History Lookup"
                         ? "Enter domain to check IP history..."
-                        : "Enter your domain..."
+                        : selectedTool === "Email Validator"
+                          ? "Enter email to validate"
+                          : selectedTool === "Malware Check"
+                            ? "Enter URL to check for malware..."
+                            : selectedTool === "Port Scanner"
+                              ? "Enter host and ports (example.com 80,443,8080)..."
+                              : "Enter your domain..."
                   }
                   autoFocus
                 />
