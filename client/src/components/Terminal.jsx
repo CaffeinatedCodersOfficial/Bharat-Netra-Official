@@ -46,7 +46,7 @@ function summarizeMalwareData(data) {
 }
 
 const Terminal = () => {
-  const backendUrl = "https://bharat-netra-official.onrender.com";
+  const backendUrl  = "https://bharat-netra-official.onrender.com";
   const [selectedTool, setSelectedTool] = useState(null);
   const [history, setHistory] = useState([]);
   const [inputValue, setInputValue] = useState("");
