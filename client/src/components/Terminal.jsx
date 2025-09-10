@@ -115,12 +115,14 @@ const Terminal = () => {
         setTimeout(() => {
           if (res.data.subdomains && res.data.subdomains.length > 0) {
             res.data.subdomains.forEach((sub) =>
-              setHistory((prev) => [...prev, sub])
+              setHistory((prev) => [
+                ...prev,
+                `${sub.subdomain} → ${sub.ip} (${sub.type})`
+              ])
             );
           } else {
             setHistory((prev) => [...prev, "No subdomains found"]);
           }
-          setLoading(false);
         }, 800);
       }
 
