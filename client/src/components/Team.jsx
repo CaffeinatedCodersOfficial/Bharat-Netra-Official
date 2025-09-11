@@ -1,8 +1,9 @@
 import React from "react";
 import { Linkedin } from "lucide-react";
-import sumit from "../../public/Sumit.jpg"
+import sumit from "../../public/Sumit.png"
 import harsh from "../../public/Harsh.png"
 import rohnish from "../../public/Rohnish.png"
+import akarshit from "../../public/Akarshit.jpg"
 const teamMembers = [ 
   {
     name: "Sumit Kumar",
@@ -25,7 +26,7 @@ const teamMembers = [
   {
     name: "Akarshit Kaushik",
     role: "Full Stack Developer",
-    img: "https://randomuser.me/api/portraits/men/1.jpg",
+    img: akarshit,
     linkedin: "https://www.linkedin.com/in/akarshit-kaushik-03a55b326/",
   },
 ];
