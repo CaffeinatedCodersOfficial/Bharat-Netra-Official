@@ -3,7 +3,7 @@ import { ShieldCheck, Cpu, Lock, Terminal } from "lucide-react";
 
 const About = () => {
   return (
-    <section className="relative w-full min-h-screen flex flex-col items-center justify-center px-6 py-16 bg-gradient-to-b from-black via-[#0a0016] to-black text-white overflow-hidden">
+    <section className="relative w-full min-h-screen flex flex-col items-center justify-center px-6 pt-20 bg-gradient-to-b from-black via-[#0a0016] to-black text-white overflow-hidden">
       
       {/* Background glow */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(136,11,209,0.2),transparent_70%)]"></div>
@@ -17,7 +17,7 @@ const About = () => {
       <p className="max-w-3xl text-center text-lg text-gray-300 leading-relaxed mb-16">
         <span className="text-[#880bd1] font-semibold">BharatNetra</span> is a 
         next-generation cyber intelligence platform designed to 
-        empower the <span className="text-white font-semibold">Cyber Cell of India</span>.  
+        empower the <span className="text-white font-semibold">Law Enforcement Agencies</span>.  
         Our mission is to provide powerful tools that safeguard digital 
         infrastructure, strengthen national security, and support 
         real-time cyber defense.

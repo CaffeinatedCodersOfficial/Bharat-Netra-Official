@@ -46,7 +46,8 @@ function summarizeMalwareData(data) {
 }
 
 const Terminal = () => {
-  const backendUrl  = "https://bharat-netra-official.onrender.com";
+  // const backendUrl  = "https://bharat-netra-official.onrender.com";
+  const backendUrl = "http://localhost:4000";
   const [selectedTool, setSelectedTool] = useState(null);
   const [history, setHistory] = useState([]);
   const [inputValue, setInputValue] = useState("");
@@ -108,7 +109,7 @@ const Terminal = () => {
       else if (selectedTool === "Subdomain Finder") {
         const res = await axios.post(
           backendUrl + "/api/subdomain/discover-subdomain",
-          { domain: command },
+          { domain: command }
         );
         setTimeout(() => {
           if (res.data.subdomains && res.data.subdomains.length > 0) {
@@ -116,18 +117,19 @@ const Terminal = () => {
               setHistory((prev) => [
                 ...prev,
                 `${sub.subdomain} → ${sub.ip} (${sub.type})`,
-              ]),
+              ])
             );
           } else {
             setHistory((prev) => [...prev, "No subdomains found"]);
           }
+          setLoading(false);
         }, 800);
       }
 
       // IP History Lookup
       else if (selectedTool === "IP History Lookup") {
         const res = await axios.get(
-          backendUrl + `/api/ip/ip-history?domain=${command}`,
+          backendUrl + `/api/ip/ip-history?domain=${command}`
         );
         setTimeout(() => {
           if (res.data.records && res.data.records.length > 0) {
@@ -143,6 +145,7 @@ const Terminal = () => {
           setLoading(false);
         }, 800);
       }
+
       // Email Validator Tool
       else if (selectedTool === "Email Validator") {
         const res = await axios.post(backendUrl + "/api/email/validate-email", {
@@ -150,10 +153,9 @@ const Terminal = () => {
         });
         setTimeout(() => {
           if (res.data) {
-            console.log(res.data);
             setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
-            setLoading(false);
           }
+          setLoading(false);
         }, 800);
       }
 
@@ -163,7 +165,7 @@ const Terminal = () => {
           backendUrl + "/api/malware/check-malware",
           {
             url: command,
-          },
+          }
         );
 
         setTimeout(() => {
@@ -215,6 +217,31 @@ const Terminal = () => {
         }, 800);
       }
 
+      // Mobile Carrier Lookup 🚀
+      else if (selectedTool === "Mobile Carrier Lookup") {
+        const res = await axios.post(
+          backendUrl + "/api/carrier/check-carrier",
+          { phone: command }
+        );
+
+        setTimeout(() => {
+          if (res.data) {
+            setHistory((prev) => [
+              ...prev,
+              `Carrier Lookup Result for ${command}:`,
+              `Valid: ${res.data.valid ? "Yes" : "No"}`,
+              `Country: ${res.data.country || "N/A"}`,
+              `Carrier: ${res.data.carrier || "N/A"}`,
+              `Type: ${res.data.phone_type || "N/A"}`,
+              `International: ${res.data.international || "N/A"}`,
+            ]);
+          } else {
+            setHistory((prev) => [...prev, "No carrier info found"]);
+          }
+          setLoading(false);
+        }, 800);
+      }
+
       // Placeholder for other tools
       else {
         setTimeout(() => {
@@ -227,7 +254,10 @@ const Terminal = () => {
       }
     } catch (err) {
       setTimeout(() => {
-        setHistory((prev) => [...prev, "❌ Error fetching data"]);
+        setHistory((prev) => [
+          ...prev,
+          `❌ Error: ${err.response?.data?.error || err.message}`,
+        ]);
         setLoading(false);
       }, 800);
     }
@@ -308,14 +338,16 @@ const Terminal = () => {
                     selectedTool === "Subdomain Finder"
                       ? "Enter domain to discover subdomains..."
                       : selectedTool === "IP History Lookup"
-                        ? "Enter domain to check IP history..."
-                        : selectedTool === "Email Validator"
-                          ? "Enter email to validate"
-                          : selectedTool === "Malware Check"
-                            ? "Enter URL to check for malware..."
-                            : selectedTool === "Port Scanner"
-                              ? "Enter host and ports (example.com 80,443,8080)..."
-                              : "Enter your domain..."
+                      ? "Enter domain to check IP history..."
+                      : selectedTool === "Email Validator"
+                      ? "Enter email to validate"
+                      : selectedTool === "Malware Check"
+                      ? "Enter URL to check for malware..."
+                      : selectedTool === "Port Scanner"
+                      ? "Enter host and ports (example.com 80,443,8080)..."
+                      : selectedTool === "Mobile Carrier Lookup"
+                      ? "Enter phone number with country code (+14155552671)..."
+                      : "Enter input..."
                   }
                   autoFocus
                 />
