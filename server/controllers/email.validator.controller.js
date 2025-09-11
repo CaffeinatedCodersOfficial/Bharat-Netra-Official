@@ -23,7 +23,7 @@ const findMxRecords = async (domain) => {
 
 const smtpVerifyEmail = async (email, mxRecords, timeout = 10000) => {
   const domain = email.split("@")[1];
-  const fromEmail = process.env.FROM_MAIL_ADD;
+  const fromEmail = "akarshit0307@outlook.com";
 
   for (const mx of mxRecords.slice(0, 3)) {
     try {
