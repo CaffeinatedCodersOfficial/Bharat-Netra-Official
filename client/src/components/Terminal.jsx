@@ -46,7 +46,7 @@ function summarizeMalwareData(data) {
 }
 
 const Terminal = () => {
-  const backendUrl  = "https://bharat-netra-official.onrender.com";
+  const backendUrl = "https://bharat-netra-official.onrender.com";
   const [selectedTool, setSelectedTool] = useState(null);
   const [history, setHistory] = useState([]);
   const [inputValue, setInputValue] = useState("");
@@ -214,6 +214,21 @@ const Terminal = () => {
           setLoading(false);
         }, 800);
       }
+      //macAddress lookup
+      else if (selectedTool === "MAC Address Lookup") {
+        const res = await axios.post(
+          backendUrl + "/api/macAddress/macAdd-lookup",
+          {
+            macAddress: command,
+          },
+        );
+        setTimeout(() => {
+          if (res.data) {
+            setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
+            setLoading(false);
+          }
+        }, 800);
+      }
 
       // Placeholder for other tools
       else {
@@ -315,7 +330,9 @@ const Terminal = () => {
                             ? "Enter URL to check for malware..."
                             : selectedTool === "Port Scanner"
                               ? "Enter host and ports (example.com 80,443,8080)..."
-                              : "Enter your domain..."
+                              : selectedTool === "MAC Address Lookup"
+                                ? "Enter Mac Address"
+                                : "Enter your domain..."
                   }
                   autoFocus
                 />
