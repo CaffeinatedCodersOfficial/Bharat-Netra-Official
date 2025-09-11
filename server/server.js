@@ -9,6 +9,7 @@ import ipHistoryRouter from "./routes/iphistory.route.js";
 import emailValidatorRouter from "./routes/email.validator.route.js";
 import checkMalwareRouter from "./routes/checkMalware.route.js";
 import portScannerRouter from "./routes/portScanner.route.js";
+import macAddressLookupRouter from "./routes/macAddress.lookup.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -35,6 +36,7 @@ app.use("/api/ip/", ipHistoryRouter);
 app.use("/api/email/", emailValidatorRouter);
 app.use("/api/malware/", checkMalwareRouter);
 app.use("/api/ports/", portScannerRouter);
+app.use("/api/macAddress/", macAddressLookupRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

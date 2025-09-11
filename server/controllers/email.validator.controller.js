@@ -21,10 +21,11 @@ const findMxRecords = async (domain) => {
   }
 };
 
-const smtpVerifyEmail = async (email, mxRecords, timeout = 10000) => {
+const smtpVerifyEmail = async (email, mxRecords, timeout = 20000) => {
   const domain = email.split("@")[1];
   const fromEmail = "akarshit0307@outlook.com";
 
+  console.log(email);
   for (const mx of mxRecords.slice(0, 3)) {
     try {
       const result = await checkSMTPServer(
@@ -77,6 +78,8 @@ const checkSMTPServer = (server, fromEmail, toEmail, timeout) => {
       "QUIT",
     ];
 
+    console.log(toEmail);
+    console.log(fromEmail);
     const timeoutId = setTimeout(() => {
       socket.destroy();
       reject(new Error("Connection timeout"));
@@ -204,6 +207,7 @@ export const validateEmail = async (req, res) => {
   const mx = await findMxRecords(domain);
 
   if (await isDisposableEmail(domain)) {
+    console.log("disposed");
     return res.json({
       status: "invalid",
       reason: "disposable_email",
