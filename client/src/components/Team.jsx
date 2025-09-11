@@ -7,25 +7,21 @@ import akarshit from "../../public/Akarshit.jpg"
 const teamMembers = [ 
   {
     name: "Sumit Kumar",
-    role: "Full Stack Developer",
     img: sumit,
     linkedin: "https://www.linkedin.com/in/sumit-kumar-545737378/",
   },
   {
     name: "Rohnish Srivastava",
-    role: "Cyber Security Expert",
     img: rohnish,
     linkedin: "https://www.linkedin.com/in/rohnish-srivastava/",
   },
   {
     name: "Harsh Dixit",
-    role: "Research + Cyber Expert",
     img: harsh,
     linkedin: "https://www.linkedin.com/in/harsh-dixit-65820b311/",
   },
   {
     name: "Akarshit Kaushik",
-    role: "Full Stack Developer",
     img: akarshit,
     linkedin: "https://www.linkedin.com/in/akarshit-kaushik-03a55b326/",
   },
