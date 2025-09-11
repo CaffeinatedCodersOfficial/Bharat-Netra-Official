@@ -3,7 +3,7 @@ import { Linkedin } from "lucide-react";
 import sumit from "../../public/Sumit.jpg"
 import harsh from "../../public/Harsh.png"
 import rohnish from "../../public/Rohnish.png"
-const teamMembers = [
+const teamMembers = [ 
   {
     name: "Sumit Kumar",
     role: "Full Stack Developer",
