@@ -10,7 +10,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   // Form states
-  const [role, setRole] = useState("Patient");
+  const [role, setRole] = useState("User");
   const [state, setState] = useState("Login"); // Login | Register | ForgotPassword | VerifyResetOtp | ResetPassword
   const [step, setStep] = useState("form"); // form | otp (for register only)
   const [name, setName] = useState("");
@@ -90,17 +90,6 @@ const LoginPage = () => {
           setOtp("");
           setStep("form");
           setOtpAttempt(1);
-          if (role === "Hospital") {
-            navigate("/hospital-form",{
-              state: {
-                name,
-                email
-              },}
-            );
-            location.reload();
-          } else {
-            setState("Login");
-          }
         } else {
           toast.error(data.message);
           setOtpAttempt(otpAttempt + 1);
@@ -294,28 +283,20 @@ const LoginPage = () => {
                     Role
                     <div className="bg-transparent flex justify-center items-center gap-4 w-full">
                       <div
-                        onClick={() => setRole("Patient")}
+                        onClick={() => setRole("User")}
                         className={`border-2 border-white/25 py-3 bg-transparent rounded-xl w-full text-center cursor-pointer active:border-white ${
-                          role === "Patient" ? "bg-white/75 text-black" : ""
+                          role === "User" ? "bg-white/75 text-black" : ""
                         } transition-all duration-150`}
                       >
-                        Patient
+                        User
                       </div>
                       <div
-                        onClick={() => setRole("Doctor")}
+                        onClick={() => setRole("Admin")}
                         className={`border-2 border-white/25 py-3 bg-transparent rounded-xl w-full text-center cursor-pointer active:border-white ${
-                          role === "Doctor" ? "bg-white/75 text-black" : ""
+                          role === "Admin" ? "bg-white/75 text-black" : ""
                         } transition-all duration-150`}
                       >
-                        Doctor
-                      </div>
-                      <div
-                        onClick={() => setRole("Hospital")}
-                        className={`border-2 border-white/25 py-3 bg-transparent rounded-xl w-full text-center cursor-pointer active:border-white ${
-                          role === "Hospital" ? "bg-white/75 text-black" : ""
-                        } transition-all duration-150`}
-                      >
-                        Hospital
+                        Admin
                       </div>
                     </div>
                   </label>
