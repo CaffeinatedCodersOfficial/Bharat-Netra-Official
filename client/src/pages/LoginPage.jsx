@@ -1,9 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
 import Aurora from "../Backgrounds/Aurora";
-import { AppContext } from "../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { AppContext } from "../Context/AppContext";
 
 const LoginPage = () => {
   const { backendUrl, isLoggedIn, userData } = useContext(AppContext);
