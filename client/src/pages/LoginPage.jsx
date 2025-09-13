@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { AppContext } from "../Context/AppContext";
 
 const LoginPage = () => {
-  const { backendUrl, isLoggedIn, userData } = useContext(AppContext);
+  const { backendUrl, isLoggedIn, userData, setIsLoggedIn } = useContext(AppContext);
   const navigate = useNavigate();
 
   // Form states
@@ -90,6 +90,7 @@ const LoginPage = () => {
           setOtp("");
           setStep("form");
           setOtpAttempt(1);
+          setIsLoggedIn(true);
         } else {
           toast.error(data.message);
           setOtpAttempt(otpAttempt + 1);
@@ -225,7 +226,7 @@ const LoginPage = () => {
   };
 
   useEffect(() => {
-    isLoggedIn && userData && navigate("/home");
+    isLoggedIn && userData && navigate("/");
   }, [isLoggedIn, userData]);
 
   useEffect(() => {

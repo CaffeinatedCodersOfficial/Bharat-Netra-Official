@@ -23,7 +23,7 @@ const Navbar = () => {
   const firstName =
     isLoggedIn && userData?.name
       ? userData.name.charAt(0).toUpperCase()
-      : null;
+      : "U";
 
   const logout = async () => {
     try {
