@@ -1,5 +1,5 @@
 export const macAddressLookup = async (req, res) => {
-  const API_KEY = "at_fthcRxteqpqOnShG4PrO6CTNriNHR";
+  const API_KEY = process.env.MAC_API_KEY;
   const { macAddress } = req.body;
 
   if (!macAddress) {
@@ -20,7 +20,7 @@ export const macAddressLookup = async (req, res) => {
 
   try {
     const response = await fetch(
-      `https://api.macaddress.io/v1?apiKey=${API_KEY}&output=json&search=${macAddress}`,
+      `https://api.macaddress.io/v1?apiKey=${API_KEY}&output=json&search=${macAddress}`
     );
 
     if (!response.ok) {
