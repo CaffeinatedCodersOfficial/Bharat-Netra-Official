@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import axios from "axios";
+import { useContext } from "react";
+import { AppContext } from "../Context/AppContext";
 
 const tools = [
   "WHOIS Lookup",
@@ -122,8 +124,7 @@ ${res.whois.substring(0, 500)}${res.whois.length > 500 ? "...(truncated)" : ""}`
 }
 
 const Terminal = () => {
-  const backendUrl = "https://bharat-netra-official.onrender.com";
-  // const backendUrl = "http://localhost:4000";
+  const {backendUrl} = useContext(AppContext);
   const [selectedTool, setSelectedTool] = useState(null);
   const [history, setHistory] = useState([]);
   const [inputValue, setInputValue] = useState("");
