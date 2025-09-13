@@ -329,7 +329,7 @@ const Terminal = () => {
 
         <div className="flex-1 p-6 overflow-y-auto text-sm leading-relaxed">
           {!selectedTool ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-4">
               {tools.map((tool, index) => (
                 <div
                   key={index}
