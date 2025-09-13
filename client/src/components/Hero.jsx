@@ -27,7 +27,8 @@ const Hero = () => {
             <h1 className="text-7xl font-bruno bg-gradient-to-r from-white via-[#880bd1] to-white bg-clip-text text-transparent ">
             Bharat Netra
             </h1>
-            <p className='text-xl w-[700px] text-center mt-3'>BharatNetra is the digital eye of law enforcement, empowering agencies with speed, precision, and intelligence.</p>
+            <p className='text-xl w-[700px] text-center mt-3'>BharatNetra is the 
+                digital eye of law enforcement, empowering agencies with speed, precision, and intelligence.</p>
         </div>
     </div>
   )

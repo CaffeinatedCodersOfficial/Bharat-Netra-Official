@@ -20,8 +20,23 @@ const tools = [
   "MAC Address Lookup",
 ];
 
-// Helper to summarize Malware Check results
+// Helper for formatting contacts in RDAP/WHOIS
+function formatContact(entity) {
+  if (!entity) return null;
+  const emails = (entity.vcard_array || []).filter((v) => v.name === "email").map((v) => v.values).flat();
+  const phones = (entity.vcard_array || []).filter((v) => v.name === "tel").map((v) => v.values).flat();
+  const names = (entity.vcard_array || []).filter((v) => v.name === "fn").map((v) => v.values).flat();
+
+  return [
+    `Name: ${names.join(", ") || "N/A"}`,
+    `Email: ${emails.join(", ") || "N/A"}`,
+    `Phone: ${phones.join(", ") || "N/A"}`,
+    `Roles: ${(entity.roles || []).join(", ") || "N/A"}`,
+  ].join("\n");
+}
+
 function summarizeMalwareData(data) {
+  if (!data?.attributes) return "No VirusTotal data.";
   const stats = data.attributes.last_analysis_stats;
   const totalEngines = Object.values(stats).reduce((a, b) => a + b, 0);
 
@@ -30,19 +45,80 @@ function summarizeMalwareData(data) {
   else if (stats.suspicious > 0) status = "Suspicious";
 
   const maliciousEngines = [];
-  const results = data.attributes.last_analysis_results;
+  const results = data.attributes.last_analysis_results || {};
   for (let engine in results) {
     if (results[engine].category === "malicious") {
       maliciousEngines.push(engine);
     }
   }
 
-  return {
-    url: data.attributes.url,
-    status,
-    summary: `${stats.malicious} / ${totalEngines} engines flagged this URL as malicious.`,
-    maliciousEngines,
-  };
+  return `Status: ${status}
+Detections: ${stats.malicious} / ${totalEngines}
+Malicious engines: ${maliciousEngines.length ? maliciousEngines.join(", ") : "None"}`;
+}
+
+function displayIPReport(res) {
+  if (!res) return "No Reverse IP data found";
+
+  const lines = [];
+  lines.push(`Reverse IP Lookup for ${res.ip}`);
+
+  // Geo Info
+  if (res.geo) {
+    lines.push(`Geo Info: 
+  Country: ${res.geo.country || "N/A"}
+  Region: ${res.geo.regionName || "N/A"}
+  City: ${res.geo.city || "N/A"}
+  ISP/Org: ${res.geo.org || res.geo.isp || "N/A"}
+  Timezone: ${res.geo.timezone || "N/A"}
+  Coords: (${res.geo.lat}, ${res.geo.lon})`);
+  }
+
+  // PTR
+  lines.push(`PTR Records: ${res.ptr?.length ? res.ptr.join(", ") : "None"}`);
+
+  // RDAP (Simple, as in your data)
+  if (res.rdap) {
+    lines.push(`RDAP:
+  Org: ${res.rdap.owner || res.rdap.network?.name || "N/A"}
+  Country: ${res.rdap.country || "N/A"}
+  ASN: ${res.rdap.asn || "N/A"}
+  Note: ${res.rdap.note || "N/A"}
+  Success: ${typeof res.rdap.success === "boolean" ? (res.rdap.success ? "Yes" : "No") : "N/A"}`);
+  }
+
+  // WHOIS
+  if (res.whois) {
+    lines.push(`WHOIS:
+${res.whois.substring(0, 500)}${res.whois.length > 500 ? "...(truncated)" : ""}`);
+  }
+
+  // VirusTotal
+  if (res.virusTotal?.summary) {
+    const vt = res.virusTotal.summary;
+    lines.push(`VirusTotal:
+  Reputation: ${vt.reputation}
+  Detections: ${vt.last_analysis_stats.malicious} malicious
+  Harmless: ${vt.last_analysis_stats.harmless}
+  Undetected: ${vt.last_analysis_stats.undetected}
+  Tags: ${(vt.tags || []).join(", ") || "None"}`);
+
+    if (res.virusTotal.raw?.data?.attributes?.last_analysis_results) {
+      const dangerous = Object.entries(
+        res.virusTotal.raw.data.attributes.last_analysis_results
+      ).filter(([_, v]) => v.category === "malicious");
+      if (dangerous.length > 0) {
+        lines.push(
+          "Malicious virus engines: " +
+            dangerous.map(([k]) => k).join(", ")
+        );
+      }
+    }
+  } else {
+    lines.push("VirusTotal: N/A");
+  }
+
+  return lines.join("\n\n");
 }
 
 const Terminal = () => {
@@ -93,199 +169,152 @@ const Terminal = () => {
     setLoading(true);
 
     try {
-      // WHOIS Lookup
       if (selectedTool === "WHOIS Lookup") {
         const res = await axios.post(backendUrl + "/api/domain/domain-info", {
           domain: command,
         });
-        setTimeout(() => {
-          setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
-          setLoading(false);
-        }, 800);
+        setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
       }
 
-      // Subdomain Finder
       else if (selectedTool === "Subdomain Finder") {
         const res = await axios.post(
           backendUrl + "/api/subdomain/discover-subdomain",
           { domain: command }
         );
-        setTimeout(() => {
-          if (res.data.subdomains && res.data.subdomains.length > 0) {
-            res.data.subdomains.forEach((sub) =>
-              setHistory((prev) => [
-                ...prev,
-                `${sub.subdomain} → ${sub.ip} (${sub.type})`,
-              ])
-            );
-          } else {
-            setHistory((prev) => [...prev, "No subdomains found"]);
-          }
-          setLoading(false);
-        }, 800);
+        if (res.data.subdomains?.length > 0) {
+          res.data.subdomains.forEach((sub) =>
+            setHistory((prev) => [
+              ...prev,
+              `${sub.subdomain} → ${sub.ip} (${sub.type})`,
+            ])
+          );
+        } else {
+          setHistory((prev) => [...prev, "No subdomains found"]);
+        }
       }
 
-      // IP History Lookup
       else if (selectedTool === "IP History Lookup") {
         const res = await axios.get(
           backendUrl + `/api/ip/ip-history?domain=${command}`
         );
-        setTimeout(() => {
-          if (res.data.records && res.data.records.length > 0) {
-            res.data.records.forEach((rec) => {
-              setHistory((prev) => [
-                ...prev,
-                `${rec.ip} | ${rec.location} | Last Seen: ${rec.lastSeen}`,
-              ]);
-            });
-          } else {
-            setHistory((prev) => [...prev, "No IP history found"]);
-          }
-          setLoading(false);
-        }, 800);
+        if (res.data.records?.length > 0) {
+          res.data.records.forEach((rec) =>
+            setHistory((prev) => [
+              ...prev,
+              `${rec.ip} | ${rec.location} | Last Seen: ${rec.lastSeen}`,
+            ])
+          );
+        } else {
+          setHistory((prev) => [...prev, "No IP history found"]);
+        }
       }
 
-      // Email Validator Tool
+      else if (selectedTool === "Reverse IP Lookup") {
+        const res = await axios.post(backendUrl + "/api/reverseip/lookup", {
+          ip: command,
+        });
+        if (res.data) {
+          setHistory((prev) => [
+            ...prev,
+            displayIPReport(res.data),
+          ]);
+        } else {
+          setHistory((prev) => [...prev, "No Reverse IP data found"]);
+        }
+      }
+
       else if (selectedTool === "Email Validator") {
         const res = await axios.post(backendUrl + "/api/email/validate-email", {
           email: command,
         });
-        setTimeout(() => {
-          if (res.data) {
-            setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
-          }
-          setLoading(false);
-        }, 800);
+        setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
       }
 
-      // Malware Check (summarized)
       else if (selectedTool === "Malware Check") {
         const res = await axios.post(
           backendUrl + "/api/malware/check-malware",
-          {
-            url: command,
-          }
+          { url: command }
         );
-
-        setTimeout(() => {
-          if (res.data && res.data.data) {
-            const summary = summarizeMalwareData(res.data.data);
-            setHistory((prev) => [
-              ...prev,
-              `Malware Check Result for ${summary.url}:`,
-              `Status: ${summary.status}`,
-              summary.summary,
-              summary.maliciousEngines.length
-                ? `Malicious engines: ${summary.maliciousEngines.join(", ")}`
-                : "No malicious engines detected",
-            ]);
-          } else {
-            setHistory((prev) => [
-              ...prev,
-              `No malware information found for ${command}`,
-            ]);
-          }
-          setLoading(false);
-        }, 800);
+        if (res.data?.data) {
+          const summary = summarizeMalwareData(res.data.data);
+          setHistory((prev) => [
+            ...prev,
+            `Malware Check Result for ${summary.url}:`,
+            summary,
+          ]);
+        } else {
+          setHistory((prev) => [
+            ...prev,
+            `No malware information found for ${command}`,
+          ]);
+        }
       }
 
-      // Port Scanner
       else if (selectedTool === "Port Scanner") {
-        // Expected input format: "example.com 80,443,8080"
         const [host, portsStr] = command.split(" ");
         if (!host || !portsStr) {
           setHistory((prev) => [
             ...prev,
             "❌ Invalid input. Use: hostname port1,port2,...",
           ]);
-          setLoading(false);
-          return;
-        }
-
-        const ports = portsStr.split(",").map((p) => parseInt(p.trim()));
-        const res = await axios.post(`${backendUrl}/api/ports/scan-ports`, {
-          host,
-          ports,
-        });
-
-        setTimeout(() => {
+        } else {
+          const ports = portsStr.split(",").map((p) => parseInt(p.trim()));
+          const res = await axios.post(`${backendUrl}/api/ports/scan-ports`, {
+            host,
+            ports,
+          });
           res.data.results.forEach((r) => {
             setHistory((prev) => [...prev, `Port ${r.port}: ${r.status}`]);
           });
-          setLoading(false);
-        }, 800);
+        }
       }
-      //macAddress lookup
+
       else if (selectedTool === "MAC Address Lookup") {
         const res = await axios.post(
           backendUrl + "/api/macAddress/macAdd-lookup",
-          {
-            macAddress: command,
-          },
+          { macAddress: command }
         );
-        setTimeout(() => {
-          if (res.data) {
-            setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
-            setLoading(false);
-          }
-        }, 800);
+        setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
       }
 
-      // Mobile Carrier Lookup 🚀
       else if (selectedTool === "Mobile Carrier Lookup") {
         const res = await axios.post(
           backendUrl + "/api/carrier/check-carrier",
           { phone: command }
         );
-
-        setTimeout(() => {
-          if (res.data) {
-            setHistory((prev) => [
-              ...prev,
-              `Carrier Lookup Result for ${command}:`,
-              `Valid: ${res.data.valid ? "Yes" : "No"}`,
-              `Country: ${res.data.country || "N/A"}`,
-              `Carrier: ${res.data.carrier || "N/A"}`,
-              `Type: ${res.data.phone_type || "N/A"}`,
-              `International: ${res.data.international || "N/A"}`,
-            ]);
-          } else {
-            setHistory((prev) => [...prev, "No carrier info found"]);
-          }
-          setLoading(false);
-        }, 800);
-      }
-
-      // Placeholder for other tools
-      else {
-        setTimeout(() => {
-          setHistory((prev) => [
-            ...prev,
-            `Tool "${selectedTool}" is not implemented yet`,
-          ]);
-          setLoading(false);
-        }, 500);
-      }
-    } catch (err) {
-      setTimeout(() => {
         setHistory((prev) => [
           ...prev,
-          `❌ Error: ${err.response?.data?.error || err.message}`,
+          `Carrier Lookup Result for ${command}:`,
+          `Valid: ${res.data.valid ? "Yes" : "No"}`,
+          `Country: ${res.data.country || "N/A"}`,
+          `Carrier: ${res.data.carrier || "N/A"}`,
+          `Type: ${res.data.phone_type || "N/A"}`,
+          `International: ${res.data.international || "N/A"}`,
         ]);
-        setLoading(false);
-      }, 800);
+      }
+
+      else {
+        setHistory((prev) => [
+          ...prev,
+          `Tool "${selectedTool}" is not implemented yet`,
+        ]);
+      }
+
+      setLoading(false);
+    } catch (err) {
+      setHistory((prev) => [
+        ...prev,
+        `❌ Error: ${err.response?.data?.error || err.message}`,
+      ]);
+      setLoading(false);
     }
   };
 
   return (
     <div className="relative w-full h-[80vh] max-w-6xl mx-auto rounded-xl overflow-hidden shadow-2xl">
-      {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#1e1e1e] via-[#121212] to-black" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03),transparent_70%)]" />
-
-      {/* Main Container */}
       <div className="relative z-10 flex flex-col w-full h-full text-gray-200 font-mono border border-gray-700/50 rounded-xl backdrop-blur-sm">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-3 bg-[#1e1e1e]/90 border-b border-gray-700/50">
           <div className="flex items-center space-x-3">
             <span className="w-3.5 h-3.5 bg-red-500 rounded-full shadow-md"></span>
@@ -298,10 +327,8 @@ const Terminal = () => {
           <div className="w-12"></div>
         </div>
 
-        {/* Body */}
         <div className="flex-1 p-6 overflow-y-auto text-sm leading-relaxed">
           {!selectedTool ? (
-            // Tools Grid
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {tools.map((tool, index) => (
                 <div
@@ -317,17 +344,13 @@ const Terminal = () => {
               ))}
             </div>
           ) : (
-            // Terminal
             <div className="flex flex-col space-y-3 relative">
-              {/* Back arrow */}
               <div
                 className="absolute -top-1 left-0 text-gray-400 cursor-pointer hover:text-white transition"
                 onClick={handleBack}
               >
                 <FaArrowLeft />
               </div>
-
-              {/* History */}
               <div className="space-y-2">
                 {history.map((line, idx) => (
                   <pre key={idx} className="whitespace-pre-wrap text-gray-300">
@@ -338,8 +361,6 @@ const Terminal = () => {
                   <pre className="text-[#880bd1] animate-pulse">...loading</pre>
                 )}
               </div>
-
-              {/* Input */}
               <div className="flex items-center space-x-2 mt-4">
                 <span className="text-[#880bd1] font-semibold">$</span>
                 <input
@@ -352,17 +373,18 @@ const Terminal = () => {
                     selectedTool === "Subdomain Finder"
                       ? "Enter domain to discover subdomains..."
                       : selectedTool === "IP History Lookup"
-                        ? "Enter domain to check IP history..."
-                        : selectedTool === "Email Validator"
-                          ? "Enter email to validate"
-                          : selectedTool === "Malware Check"
-                            ? "Enter URL to check for malware..."
-                            : selectedTool === "Port Scanner"
-                              ? "Enter host and ports (example.com 80,443,8080)..."
-                              : selectedTool === "MAC Address Lookup"
-                                ? "Enter Mac Address"
-                                : "Enter your domain..."
-
+                      ? "Enter domain to check IP history..."
+                      : selectedTool === "Reverse IP Lookup"
+                      ? "Enter IP address (e.g., 8.8.8.8)..."
+                      : selectedTool === "Email Validator"
+                      ? "Enter email to validate"
+                      : selectedTool === "Malware Check"
+                      ? "Enter URL to check for malware..."
+                      : selectedTool === "Port Scanner"
+                      ? "Enter host and ports (example.com 80,443,8080)..."
+                      : selectedTool === "MAC Address Lookup"
+                      ? "Enter MAC Address"
+                      : "Enter input..."
                   }
                   autoFocus
                 />

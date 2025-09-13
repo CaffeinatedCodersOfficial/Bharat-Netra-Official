@@ -11,6 +11,7 @@ import checkMalwareRouter from "./routes/checkMalware.route.js";
 import portScannerRouter from "./routes/portScanner.route.js";
 import macAddressLookupRouter from "./routes/macAddress.lookup.route.js";
 import carrierRouter from "./routes/carrier.route.js";
+import reverseIpRouter from "./routes/reverseip.lookup.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -23,7 +24,7 @@ app.use(
       "http://localhost:5173",
       "https://official-bharat-netra.vercel.app",
     ],
-  }),
+  })
 );
 app.use(express.json());
 app.use(cookieParser());
@@ -39,6 +40,7 @@ app.use("/api/malware/", checkMalwareRouter);
 app.use("/api/ports/", portScannerRouter);
 app.use("/api/macAddress/", macAddressLookupRouter);
 app.use("/api/carrier/", carrierRouter);
+app.use("/api/reverseip/", reverseIpRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
