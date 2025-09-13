@@ -108,7 +108,7 @@ const Terminal = () => {
       else if (selectedTool === "Subdomain Finder") {
         const res = await axios.post(
           backendUrl + "/api/subdomain/discover-subdomain",
-          { domain: command }
+          { domain: command },
         );
         setTimeout(() => {
           if (res.data.subdomains && res.data.subdomains.length > 0) {
@@ -116,7 +116,7 @@ const Terminal = () => {
               setHistory((prev) => [
                 ...prev,
                 `${sub.subdomain} → ${sub.ip} (${sub.type})`,
-              ])
+              ]),
             );
           } else {
             setHistory((prev) => [...prev, "No subdomains found"]);
@@ -128,7 +128,7 @@ const Terminal = () => {
       // IP History Lookup
       else if (selectedTool === "IP History Lookup") {
         const res = await axios.get(
-          backendUrl + `/api/ip/ip-history?domain=${command}`
+          backendUrl + `/api/ip/ip-history?domain=${command}`,
         );
         setTimeout(() => {
           if (res.data.records && res.data.records.length > 0) {
@@ -164,7 +164,7 @@ const Terminal = () => {
           backendUrl + "/api/malware/check-malware",
           {
             url: command,
-          }
+          },
         );
 
         setTimeout(() => {
@@ -230,12 +230,27 @@ const Terminal = () => {
           }
         }, 800);
       }
+      //Password Hash Breaker
+      else if (selectedTool === "Password Hash Breaker") {
+        const res = await axios.post(
+          backendUrl + "/api/password/pass-breaker",
+          {
+            targetHash: command,
+          },
+        );
+        setTimeout(() => {
+          if (res.data) {
+            setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
+            setLoading(false);
+          }
+        }, 800);
+      }
 
       // Mobile Carrier Lookup 🚀
       else if (selectedTool === "Mobile Carrier Lookup") {
         const res = await axios.post(
           backendUrl + "/api/carrier/check-carrier",
-          { phone: command }
+          { phone: command },
         );
 
         setTimeout(() => {
@@ -361,8 +376,9 @@ const Terminal = () => {
                               ? "Enter host and ports (example.com 80,443,8080)..."
                               : selectedTool === "MAC Address Lookup"
                                 ? "Enter Mac Address"
-                                : "Enter your domain..."
-
+                                : selectedTool === "Password Hash Breaker"
+                                  ? "Enter hash to break"
+                                  : "Enter your domain..."
                   }
                   autoFocus
                 />
