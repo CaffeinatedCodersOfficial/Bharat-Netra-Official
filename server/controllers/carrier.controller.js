@@ -16,7 +16,6 @@ export const carrierLookup = async (req, res) => {
       },
     });
 
-    // Veriphone responds with detailed info
     res.json({
       phone: response.data.phone,
       international: response.data.international_number,

@@ -1,26 +1,12 @@
-// controllers/reverseIpController.js
 import dns from "dns";
 import fetch from "node-fetch";
 import * as whoiser from "whoiser";
-
-/**
- * Environment variables (optional)
- * - VIRUSTOTAL_API_KEY
- * - SHODAN_API_KEY
- * - ABUSEIPDB_API_KEY
- * - SECURITYTRAILS_API_KEY
- */
 
 const VT_KEY = process.env.VIRUSTOTAL_API_KEY;
 const SHODAN_KEY = process.env.SHODAN_API_KEY;
 const ABUSEIPDB_KEY = process.env.ABUSEIPDB_API_KEY;
 const ST_KEY = process.env.SECURITYTRAILS_API_KEY;
 
-/* -------------------------
-   Utilities
-   ------------------------- */
-
-// Simple IPv4 private/reserved check (RFC1918 + common)
 const isPrivateIPv4 = (ip) => {
   const m = ip.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
   if (!m) return false;
@@ -28,19 +14,14 @@ const isPrivateIPv4 = (ip) => {
   if (a === 10) return true;
   if (a === 172 && b >= 16 && b <= 31) return true;
   if (a === 192 && b === 168) return true;
-  if (a === 127) return true; // loopback
-  if (a === 169 && b === 254) return true; // link-local
-  if (a >= 224 && a <= 239) return true; // multicast
+  if (a === 127) return true;
+  if (a === 169 && b === 254) return true;
+  if (a >= 224 && a <= 239) return true;
   return false;
 };
 
 const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
 
-/* -------------------------
-   Helpers (each returns { success, data, error })
-   ------------------------- */
-
-// Reverse DNS (PTR)
 const reverseDNS = (ip) =>
   new Promise((resolve) => {
     dns.reverse(ip, (err, hostnames) => {
@@ -49,7 +30,6 @@ const reverseDNS = (ip) =>
     });
   });
 
-// RDAP / WHOIS via whoiser
 const rdapLookup = async (ip) => {
   try {
     const raw = await whoiser.rdap(ip);
@@ -59,7 +39,6 @@ const rdapLookup = async (ip) => {
   }
 };
 
-// GeoIP + ASN from ip-api (free)
 const geoLookup = async (ip) => {
   try {
     const r = await fetch(
@@ -74,7 +53,6 @@ const geoLookup = async (ip) => {
   }
 };
 
-// VirusTotal IP lookup + passive DNS (optional)
 const virusTotalLookup = async (ip) => {
   if (!VT_KEY)
     return { success: false, error: "VIRUSTOTAL_API_KEY not set", data: null };
@@ -89,14 +67,11 @@ const virusTotalLookup = async (ip) => {
       return { success: false, error: `vt status ${r.status}`, data: null };
     const json = await r.json();
 
-    // Passive DNS: VT provides 'data.attributes.last_dns_records' or 'data.attributes.resolutions'
     const attrs = json.data?.attributes || {};
     const passive_dns = attrs.last_dns_records || attrs.resolutions || null;
 
-    // hosted domains: try to extract domains from passive_dns if present
     let hosted_domains = [];
     if (Array.isArray(passive_dns)) {
-      // passive_dns items differ; we'll try common fields
       for (const rec of passive_dns) {
         if (rec.host_name) hosted_domains.push(rec.host_name);
         else if (rec.hostname) hosted_domains.push(rec.hostname);
@@ -119,7 +94,6 @@ const virusTotalLookup = async (ip) => {
   }
 };
 
-// SecurityTrails (optional) - hosted domains / passive dns (paid)
 const securityTrailsLookup = async (ip) => {
   if (!ST_KEY)
     return {
@@ -135,7 +109,7 @@ const securityTrailsLookup = async (ip) => {
         headers: { APIKEY: ST_KEY },
       }
     );
-    // NOTE: securitytrails has many endpoints. Adjust if you have a different ST endpoint.
+
     if (!r.ok)
       return {
         success: false,
@@ -149,7 +123,6 @@ const securityTrailsLookup = async (ip) => {
   }
 };
 
-// Shodan (optional)
 const shodanLookup = async (ip) => {
   if (!SHODAN_KEY)
     return { success: false, error: "SHODAN_API_KEY not set", data: null };
@@ -164,7 +137,6 @@ const shodanLookup = async (ip) => {
     if (!r.ok)
       return { success: false, error: `shodan status ${r.status}`, data: null };
     const json = await r.json();
-    // extract useful fields
     const info = {
       ip: json.ip_str || ip,
       hostnames: json.hostnames || [],
@@ -173,7 +145,7 @@ const shodanLookup = async (ip) => {
       isp: json.isp || null,
       os: json.os || null,
       last_update: json.last_update || null,
-      data: json.data || null, // raw banners
+      data: json.data || null,
     };
     return { success: true, data: info };
   } catch (err) {
@@ -181,7 +153,6 @@ const shodanLookup = async (ip) => {
   }
 };
 
-// AbuseIPDB (optional)
 const abuseIpdbLookup = async (ip) => {
   if (!ABUSEIPDB_KEY)
     return { success: false, error: "ABUSEIPDB_API_KEY not set", data: null };
@@ -208,16 +179,10 @@ const abuseIpdbLookup = async (ip) => {
   }
 };
 
-/* -------------------------
-   Helper: parse abuse contacts from RDAP whois response (best-effort)
-   ------------------------- */
 const extractAbuseContactsFromRdap = (rdapRaw) => {
   try {
     if (!rdapRaw) return null;
-    // whoiser.rdap returns different shapes depending on RIR; try common patterns
-    // look for entities -> objects -> vcardArray, or remarks with abuse contacts
     const contacts = [];
-    // objects-style
     if (rdapRaw.objects) {
       for (const objKey in rdapRaw.objects) {
         const obj = rdapRaw.objects[objKey];
@@ -228,7 +193,6 @@ const extractAbuseContactsFromRdap = (rdapRaw) => {
           roles.includes("abuse-c") ||
           objKey.toLowerCase().includes("abuse")
         ) {
-          // try vcardArray
           const vcard = obj.vcardArray;
           if (vcard && vcard[1]) {
             for (const field of vcard[1]) {
@@ -239,11 +203,9 @@ const extractAbuseContactsFromRdap = (rdapRaw) => {
         }
       }
     }
-    // entities-style
     if (rdapRaw.entities && Array.isArray(rdapRaw.entities)) {
       for (const ent of rdapRaw.entities) {
         if (ent.roles && ent.roles.includes("abuse")) {
-          // vcardArray might be inside ent.vcardArray or ent.vcard
           const vcard = ent.vcardArray || ent.vcard;
           if (vcard && vcard[1]) {
             for (const field of vcard[1]) {
@@ -254,17 +216,12 @@ const extractAbuseContactsFromRdap = (rdapRaw) => {
         }
       }
     }
-    // fallback: rdapRaw.abuse_contacts or similar
     if (rdapRaw.abuse_contacts) contacts.push(...rdapRaw.abuse_contacts);
     return contacts.length ? [...new Set(contacts)].filter(Boolean) : null;
   } catch {
     return null;
   }
 };
-
-/* -------------------------
-   Main controller
-   ------------------------- */
 
 export const lookupIP = async (req, res) => {
   try {
@@ -273,17 +230,13 @@ export const lookupIP = async (req, res) => {
       return res.status(400).json({ error: "ip is required in request body" });
 
     ip = String(ip).trim();
-    // basic IPv4 check (you can extend for IPv6)
     if (!ipv4Regex.test(ip)) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "invalid IPv4 format (simple check). IPv6 not supported by this endpoint.",
-        });
+      return res.status(400).json({
+        error:
+          "invalid IPv4 format (simple check). IPv6 not supported by this endpoint.",
+      });
     }
 
-    // Short-circuit private/reserved IPs
     if (isPrivateIPv4(ip)) {
       return res.json({
         ip,
@@ -292,7 +245,6 @@ export const lookupIP = async (req, res) => {
       });
     }
 
-    // Run lookups in parallel (fast)
     const [ptrRes, rdapRes, geoRes, vtRes, shodanRes, abuseRes, stRes] =
       await Promise.all([
         reverseDNS(ip),
@@ -304,9 +256,7 @@ export const lookupIP = async (req, res) => {
         securityTrailsLookup(ip),
       ]);
 
-    // Consolidate RDAP-derived basic fields
     const rdapRaw = rdapRes.success ? rdapRes.data : null;
-    // best-effort extract:
     const rdapOwner =
       rdapRaw?.network?.name ||
       rdapRaw?.name ||
@@ -321,14 +271,10 @@ export const lookupIP = async (req, res) => {
       rdapRaw?.asn || (rdapRaw?.autnums && rdapRaw.autnums[0]) || null;
     const abuseContacts = extractAbuseContactsFromRdap(rdapRaw);
 
-    // From geoRes (ip-api), it already has as field like "AS15169 Google LLC"
     const geoData = geoRes.success ? geoRes.data : null;
 
-    // Passive DNS / hosted domains: prefer SecurityTrails (if available), then VirusTotal
     let hosted_domains = [];
     if (stRes.success && stRes.data) {
-      // securitytrails data schema varies; this is a best-effort placeholder
-      // If you have a specific ST endpoint, parse accordingly (e.g., /v1/ips/dns or /v1/ips/hosts)
       try {
         if (Array.isArray(stRes.data.hosts) && stRes.data.hosts.length) {
           hosted_domains = stRes.data.hosts.map((h) => h.hostname || h);
@@ -347,7 +293,6 @@ export const lookupIP = async (req, res) => {
     ) {
       hosted_domains = vtRes.hosted_domains;
     }
-    // also fallback to VT passive_dns parsed hosted_domains
     if (
       !hosted_domains.length &&
       vtRes.success &&
@@ -362,7 +307,6 @@ export const lookupIP = async (req, res) => {
       hosted_domains = Array.from(domains);
     }
 
-    // Build response object
     const response = {
       ip,
       lookupTimeMs: Date.now(),
