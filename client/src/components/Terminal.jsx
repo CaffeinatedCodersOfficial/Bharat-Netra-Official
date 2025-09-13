@@ -235,7 +235,7 @@ const Terminal = () => {
           backendUrl + "/api/malware/check-malware",
           {
             url: command,
-          }
+          },
         );
         if (res.data?.data) {
           const summary = summarizeMalwareData(res.data.data);
@@ -274,9 +274,16 @@ const Terminal = () => {
       else if (selectedTool === "MAC Address Lookup") {
         const res = await axios.post(
           backendUrl + "/api/macAddress/macAdd-lookup",
-          { macAddress: command }
+          {
+            macAddress: command,
+          },
         );
-        setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
+        setTimeout(() => {
+          if (res.data) {
+            setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
+            setLoading(false);
+          }
+        }, 800);
       }
       //Password Hash Breaker
       else if (selectedTool === "Password Hash Breaker") {
@@ -390,6 +397,18 @@ const Terminal = () => {
                     selectedTool === "Subdomain Finder"
                       ? "Enter domain to discover subdomains..."
                       : selectedTool === "IP History Lookup"
+                      ? "Enter domain to check IP history..."
+                      : selectedTool === "Reverse IP Lookup"
+                      ? "Enter IP address (e.g., 8.8.8.8)..."
+                      : selectedTool === "Email Validator"
+                      ? "Enter email to validate"
+                      : selectedTool === "Malware Check"
+                      ? "Enter URL to check for malware..."
+                      : selectedTool === "Port Scanner"
+                      ? "Enter host and ports (example.com 80,443,8080)..."
+                      : selectedTool === "MAC Address Lookup"
+                      ? "Enter MAC Address"
+                      : "Enter input..."
                         ? "Enter domain to check IP history..."
                         : selectedTool === "Email Validator"
                           ? "Enter email to validate"
@@ -399,8 +418,9 @@ const Terminal = () => {
                               ? "Enter host and ports (example.com 80,443,8080)..."
                               : selectedTool === "MAC Address Lookup"
                                 ? "Enter Mac Address"
-                                : "Enter your domain..."
-
+                                : selectedTool === "Password Hash Breaker"
+                                  ? "Enter hash to break"
+                                  : "Enter your domain..."
                   }
                   autoFocus
                 />
