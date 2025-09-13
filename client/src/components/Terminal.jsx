@@ -180,14 +180,14 @@ const Terminal = () => {
       else if (selectedTool === "Subdomain Finder") {
         const res = await axios.post(
           backendUrl + "/api/subdomain/discover-subdomain",
-          { domain: command }
+          { domain: command },
         );
         if (res.data.subdomains?.length > 0) {
           res.data.subdomains.forEach((sub) =>
             setHistory((prev) => [
               ...prev,
               `${sub.subdomain} → ${sub.ip} (${sub.type})`,
-            ])
+            ]),
           );
         } else {
           setHistory((prev) => [...prev, "No subdomains found"]);
@@ -196,7 +196,7 @@ const Terminal = () => {
 
       else if (selectedTool === "IP History Lookup") {
         const res = await axios.get(
-          backendUrl + `/api/ip/ip-history?domain=${command}`
+          backendUrl + `/api/ip/ip-history?domain=${command}`,
         );
         if (res.data.records?.length > 0) {
           res.data.records.forEach((rec) =>
@@ -234,7 +234,9 @@ const Terminal = () => {
       else if (selectedTool === "Malware Check") {
         const res = await axios.post(
           backendUrl + "/api/malware/check-malware",
-          { url: command }
+          {
+            url: command,
+          },
         );
         if (res.data?.data) {
           const summary = summarizeMalwareData(res.data.data);
@@ -273,15 +275,37 @@ const Terminal = () => {
       else if (selectedTool === "MAC Address Lookup") {
         const res = await axios.post(
           backendUrl + "/api/macAddress/macAdd-lookup",
-          { macAddress: command }
+          {
+            macAddress: command,
+          },
         );
-        setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
+        setTimeout(() => {
+          if (res.data) {
+            setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
+            setLoading(false);
+          }
+        }, 800);
+      }
+      //Password Hash Breaker
+      else if (selectedTool === "Password Hash Breaker") {
+        const res = await axios.post(
+          backendUrl + "/api/password/pass-breaker",
+          {
+            targetHash: command,
+          },
+        );
+        setTimeout(() => {
+          if (res.data) {
+            setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
+            setLoading(false);
+          }
+        }, 800);
       }
 
       else if (selectedTool === "Mobile Carrier Lookup") {
         const res = await axios.post(
           backendUrl + "/api/carrier/check-carrier",
-          { phone: command }
+          { phone: command },
         );
         setHistory((prev) => [
           ...prev,
@@ -386,6 +410,18 @@ const Terminal = () => {
                       : selectedTool === "MAC Address Lookup"
                       ? "Enter MAC Address"
                       : "Enter input..."
+                        ? "Enter domain to check IP history..."
+                        : selectedTool === "Email Validator"
+                          ? "Enter email to validate"
+                          : selectedTool === "Malware Check"
+                            ? "Enter URL to check for malware..."
+                            : selectedTool === "Port Scanner"
+                              ? "Enter host and ports (example.com 80,443,8080)..."
+                              : selectedTool === "MAC Address Lookup"
+                                ? "Enter Mac Address"
+                                : selectedTool === "Password Hash Breaker"
+                                  ? "Enter hash to break"
+                                  : "Enter your domain..."
                   }
                   autoFocus
                 />
