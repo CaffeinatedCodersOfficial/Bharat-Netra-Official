@@ -3,18 +3,16 @@ import axios from "axios";
 
 export const getIpHistory = async (req, res) => {
   const { domain } = req.query;
-  if (!domain) {
-    return res.status(400).json({ error: "Domain is required" });
-  }
+  if (!domain) return res.status(400).json({ error: "Domain is required" });
 
   try {
     const apiKey = process.env.VIEWDNS_API;
     let records = [];
 
     if (apiKey) {
+      // Using ViewDNS API
       const url = `https://api.viewdns.info/iphistory/?domain=${domain}&apikey=${apiKey}&output=json`;
       const { data } = await axios.get(url);
-      console.log("✅ API Response:", data);
 
       if (data.response && data.response.records) {
         records = data.response.records
@@ -26,16 +24,15 @@ export const getIpHistory = async (req, res) => {
           .filter((r) => r.ip && r.ip.includes(".") && r.lastSeen);
       }
     } else {
+      // Fallback: Scraping HTML
       const url = `https://viewdns.info/iphistory/?domain=${domain}`;
       const { data } = await axios.get(url, {
         headers: { "User-Agent": "Mozilla/5.0" },
       });
 
-      console.log("✅ Scraping HTML length:", data.length);
-
       const $ = cheerio.load(data);
       $("table tr").each((i, row) => {
-        if (i === 0) return;
+        if (i === 0) return; // skip header row
         const cols = $(row).find("td");
         if (cols.length >= 3) {
           const ip = $(cols[0]).text().trim();
@@ -51,6 +48,7 @@ export const getIpHistory = async (req, res) => {
       });
     }
 
+    // Remove duplicate IPs
     const seen = new Set();
     records = records.filter((r) => {
       if (seen.has(r.ip)) return false;
@@ -58,9 +56,10 @@ export const getIpHistory = async (req, res) => {
       return true;
     });
 
+    // Limit to 10 latest records
     records = records.slice(0, 10);
 
-    return res.json({ records });
+    return res.json({ domain, records });
   } catch (err) {
     console.error("❌ IP History Error:", err);
     return res.status(500).json({ error: err.message });
