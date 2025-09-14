@@ -8,7 +8,7 @@ import {
   Clock,
   BarChart3,
   AlertTriangle,
-  Server,
+  Server ,
 } from "lucide-react";
 import {
   LineChart,
