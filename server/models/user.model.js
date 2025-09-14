@@ -36,6 +36,12 @@ const userSchema = new mongoose.Schema(
     otpExpire: {
       type: Date,
     },
+    loginHistory: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "LoginHistory",
+      },
+    ],
   },
   { timestamps: true }
 );

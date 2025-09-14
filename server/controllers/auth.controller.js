@@ -3,10 +3,29 @@ import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
 import transporter from "../configs/nodemailer.config.js";
 import { PendingUser } from "../models/pendingUser.model.js";
-
+import { LoginHistory } from "../models/loginHistory.model.js";
+import axios from "axios";
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
+
+const getGeoData = async (ip) => {
+  try {
+    const { data } = await axios.get(`https://ipapi.co/${ip}/json/`);
+    return {
+      ip,
+      region: data.region,
+      country: data.country_name,
+      city: data.city,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      network: data.org,
+    };
+  } catch (err) {
+    console.error("Geo fetch error:", err.message);
+    return { ip };
+  }
+};
 
 export const register = async (req, res) => {
   try {
@@ -107,6 +126,22 @@ export const login = async (req, res) => {
       return res.json({ success: false, message: "Invalid Password" });
     }
 
+    const ip =
+      req.headers["x-forwarded-for"]?.split(",")[0] ||
+      req.connection.remoteAddress ||
+      req.socket.remoteAddress;
+
+    // 3. Get Geo data
+    const geoData = await getGeoData(ip);
+
+    // 4. Save login history
+    const loginHistory = await LoginHistory.create({
+      userId: user._id,
+      ...geoData,
+    });
+
+    user.loginHistory.push(loginHistory._id);
+    await user.save();
     const token = jwt.sign(
       {
         userId: user._id,
@@ -171,14 +206,30 @@ export const verifyRegisterationOtp = async (req, res) => {
       return res.json({ success: false, message: "Invalid OTP" });
     }
 
-    await User.create({
+    const newUser = await User.create({
       email: user.email,
       name: user.name,
       password: user.password,
       role: user.role,
       isVerified: true,
     });
+    await newUser.save();
+    const ip =
+      req.headers["x-forwarded-for"]?.split(",")[0] ||
+      req.connection.remoteAddress ||
+      req.socket.remoteAddress;
 
+    // 3. Get Geo data
+    const geoData = await getGeoData(ip);
+
+    // 4. Save login history
+    const loginHistory = await loginHistoryModel.create({
+      userId: newUser._id,
+      ...geoData,
+    });
+    await loginHistory.save();
+    newUser.loginHistory.push(loginHistory._id);
+    await newUser.save();
     await PendingUser.deleteOne({ email });
 
     res.json({
