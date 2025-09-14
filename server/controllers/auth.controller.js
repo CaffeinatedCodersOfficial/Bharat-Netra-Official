@@ -100,7 +100,7 @@ export const register = async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    res.json({ success: true, message: "Regsitration OTP sent on email." });
+    res.json({ success: true, message: "Registration OTP sent on email." });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }

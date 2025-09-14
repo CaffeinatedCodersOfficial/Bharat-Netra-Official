@@ -77,9 +77,16 @@ const DashboardPage = () => {
     { name: "WHOIS", value: 400 },
     { name: "IP History", value: 300 },
     { name: "DNS Lookup", value: 200 },
-    { name: "SSL Checker", value: 100 },
+    { name: "SSL Checker", value: 300 },
+    { name: "Malware Check", value: 200 },
   ];
-  const COLORS = ["#880bd1", "#00C49F", "#FFBB28", "#FF4444"];
+  const COLORS = [
+  "#880bd1", "#00C49F", "#FFBB28", "#FF4444", "#0088FE",
+  "#FF8042", "#AF19FF", "#FF6F91", "#00CFFF", "#2ECC71",
+  "#FF5733", "#C70039", "#900C3F", "#581845", "#1ABC9C",
+  "#F1C40F", "#E67E22", "#2E86C1", "#16A085", "#D35400"
+];
+
   return (
     <div className="relative w-full min-h-screen bg-gradient-to-b from-black via-[#0a0016] to-black text-white px-6 py-20 overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(136,11,209,0.15),transparent_70%)]"></div>
