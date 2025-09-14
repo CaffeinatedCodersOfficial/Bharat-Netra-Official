@@ -90,7 +90,7 @@ const LoginPage = () => {
           setOtp("");
           setStep("form");
           setOtpAttempt(1);
-          setIsLoggedIn(true);
+          setState("Login");
         } else {
           toast.error(data.message);
           setOtpAttempt(otpAttempt + 1);
