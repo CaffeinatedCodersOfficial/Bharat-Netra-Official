@@ -141,6 +141,9 @@ export const login = async (req, res) => {
     });
 
     user.loginHistory.push(loginHistory._id);
+
+    const lastLogin = Date.now();
+    user.lastLogin = lastLogin;
     await user.save();
     const token = jwt.sign(
       {
@@ -212,6 +215,7 @@ export const verifyRegisterationOtp = async (req, res) => {
       password: user.password,
       role: user.role,
       isVerified: true,
+      lastLogin: Date.now(),
     });
     await newUser.save();
     await PendingUser.deleteOne({ email });

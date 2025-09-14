@@ -28,16 +28,25 @@ import { useEffect } from "react";
 
 
 const DashboardPage = () => {
-    const {refreshAuth, userData} = useContext(AppContext);
+    const {refreshAuth, userData, isLoggedIn} = useContext(AppContext);
     console.log(userData);
     
   const user = {
-    name: "Sumit Kumar",
-    email: "sumit@example.com",
-    role: "Engineer",
-    lastLogin: "14 Sep 2025, 10:45 AM",
-    accountStatus: "Active",
-  };
+  name: userData?.name,
+  email: userData?.email,
+  role: userData?.role,
+  lastLogin: userData?.lastLogin 
+    ? new Date(userData.lastLogin).toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "Never logged in", // fallback if no login yet
+  accountStatus: isLoggedIn ? "Active" : "Inactive",
+};
+
 
   const stats = [
     { icon: Cpu, label: "API Calls", value: userData?.totalUsage },
@@ -97,7 +106,7 @@ const DashboardPage = () => {
               </p>
               <p className="mt-2 text-sm">
                 Status:{" "}
-                <span className="text-green-400 font-semibold">
+                <span className={`${isLoggedIn ? "text-green-400":"text-red-600"} font-semibold`}>
                   {user.accountStatus}
                 </span>
               </p>

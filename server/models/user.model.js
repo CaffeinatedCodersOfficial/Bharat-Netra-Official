@@ -42,6 +42,9 @@ const userSchema = new mongoose.Schema(
         ref: "LoginHistory",
       },
     ],
+    lastLogin: {
+      type: Date,
+    },
     totalUsage: {
       type: Number,
       default: 0,
