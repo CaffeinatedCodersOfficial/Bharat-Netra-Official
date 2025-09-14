@@ -1,4 +1,5 @@
 import net from "net";
+import { User } from "../models/user.model.js";
 
 // Function to scan a single port
 const scanPort = (host, port, timeout = 2000) => {
@@ -21,7 +22,7 @@ const scanPort = (host, port, timeout = 2000) => {
 
 // Controller function
 export const scanPorts = async (req, res) => {
-  const { host, ports } = req.body;
+  const { host, ports, userId } = req.body;
 
   if (!host || !ports || !Array.isArray(ports)) {
     return res.status(400).json({ error: "host and array of ports required" });
@@ -31,6 +32,9 @@ export const scanPorts = async (req, res) => {
     const results = await Promise.all(
       ports.map((port) => scanPort(host, port))
     );
+    const user = await User.findById(userId);
+    user.totalUsage += 1;
+    await user.save();
     res.json({ host, results });
   } catch (err) {
     res

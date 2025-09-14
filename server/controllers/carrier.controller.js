@@ -1,9 +1,10 @@
 // controllers/carrier.controller.js
 import axios from "axios";
+import { User } from "../models/user.model.js";
 
 export const carrierLookup = async (req, res) => {
   try {
-    const { phone } = req.body;
+    const { phone, userId } = req.body;
 
     if (!phone) {
       return res.status(400).json({ error: "Phone number is required" });
@@ -15,7 +16,9 @@ export const carrierLookup = async (req, res) => {
         key: process.env.VERIPHONE_API_KEY,
       },
     });
-
+    const user = await User.findById(userId);
+    user.totalUsage += 1;
+    await user.save();
     res.json({
       phone: response.data.phone,
       international: response.data.international_number,

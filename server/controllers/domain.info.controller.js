@@ -1,11 +1,15 @@
 import whois from "whois";
+import { User } from "../models/user.model.js";
 
 export const getDomainInfo = async (req, res) => {
   try {
-    const { domain } = req.body;
+    const { domain, userId } = req.body;
     if (!domain) {
       return res.json({ success: false, message: "Domain is required" });
     }
+    const user = await User.findById(userId);
+    user.totalUsage += 1;
+    await user.save();
     whois.lookup(domain, (err, data) => {
       data = formatData({ whoisData: data });
       if (err) return res.json({ success: false, error: err.message });

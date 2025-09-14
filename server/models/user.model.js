@@ -42,6 +42,10 @@ const userSchema = new mongoose.Schema(
         ref: "LoginHistory",
       },
     ],
+    totalUsage: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

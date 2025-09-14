@@ -1,6 +1,8 @@
+import { User } from "../models/user.model.js";
+
 export const macAddressLookup = async (req, res) => {
   const API_KEY = process.env.MAC_API_KEY;
-  const { macAddress } = req.body;
+  const { macAddress, userId } = req.body;
 
   if (!macAddress) {
     return res.json({
@@ -22,7 +24,9 @@ export const macAddressLookup = async (req, res) => {
     const response = await fetch(
       `https://api.macaddress.io/v1?apiKey=${API_KEY}&output=json&search=${macAddress}`
     );
-
+    const user = await User.findById(userId);
+    user.totalUsage += 1;
+    await user.save();
     if (!response.ok) {
       return res.json({
         success: false,

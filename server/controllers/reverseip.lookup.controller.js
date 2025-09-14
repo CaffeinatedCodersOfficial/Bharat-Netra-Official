@@ -1,6 +1,7 @@
 import dns from "dns";
 import fetch from "node-fetch";
 import * as whoiser from "whoiser";
+import { User } from "../models/user.model.js";
 
 const VT_KEY = process.env.VIRUSTOTAL_API_KEY;
 const SHODAN_KEY = process.env.SHODAN_API_KEY;
@@ -225,7 +226,7 @@ const extractAbuseContactsFromRdap = (rdapRaw) => {
 
 export const lookupIP = async (req, res) => {
   try {
-    let { ip } = req.body || {};
+    let { ip, userId } = req.body || {};
     if (!ip)
       return res.status(400).json({ error: "ip is required in request body" });
 
@@ -255,7 +256,9 @@ export const lookupIP = async (req, res) => {
         abuseIpdbLookup(ip),
         securityTrailsLookup(ip),
       ]);
-
+    const user = await User.findById(userId);
+    user.totalUsage += 1;
+    await user.save();
     const rdapRaw = rdapRes.success ? rdapRes.data : null;
     const rdapOwner =
       rdapRaw?.network?.name ||

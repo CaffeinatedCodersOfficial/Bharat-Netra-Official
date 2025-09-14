@@ -1,8 +1,9 @@
 import * as cheerio from "cheerio";
 import axios from "axios";
+import { User } from "../models/user.model.js";
 
 export const getIpHistory = async (req, res) => {
-  const { domain } = req.query;
+  const { domain, userId } = req.query;
   if (!domain) return res.status(400).json({ error: "Domain is required" });
 
   try {
@@ -13,7 +14,9 @@ export const getIpHistory = async (req, res) => {
       // Using ViewDNS API
       const url = `https://api.viewdns.info/iphistory/?domain=${domain}&apikey=${apiKey}&output=json`;
       const { data } = await axios.get(url);
-
+      const user = await User.findById(userId);
+      user.totalUsage += 1;
+      await user.save();
       if (data.response && data.response.records) {
         records = data.response.records
           .map((r) => ({

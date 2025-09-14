@@ -8,6 +8,7 @@ import { AppContext } from './Context/AppContext';
 import ProtectedRoute from './components/ProtectRoute';
 import PublicRoute from './components/PublicRoute';
 import { ToastContainer } from 'react-toastify';
+import DashboardPage from './pages/DashboardPage';
 
 const App = () => {
   const location = useLocation();
@@ -27,6 +28,14 @@ const App = () => {
           element={
             <ProtectedRoute>
               <HomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
             </ProtectedRoute>
           }
         />

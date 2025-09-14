@@ -1,5 +1,6 @@
 import dns from "dns/promises";
 import net from "net";
+import { User } from "../models/user.model.js";
 
 const isValidSyntax = (email) => {
   const emailRegex =
@@ -32,7 +33,7 @@ const smtpVerifyEmail = async (email, mxRecords, timeout = 20000) => {
         mx.exchange,
         fromEmail,
         email,
-        timeout,
+        timeout
       );
       if (result.checked) {
         return result;
@@ -153,9 +154,7 @@ const checkSMTPServer = (server, fromEmail, toEmail, timeout) => {
           clearTimeout(timeoutId);
           socket.destroy();
           reject(
-            new Error(
-              `Unexpected response at step ${step}: ${lastLine.trim()}`,
-            ),
+            new Error(`Unexpected response at step ${step}: ${lastLine.trim()}`)
           );
         }
 
@@ -175,7 +174,7 @@ const checkSMTPServer = (server, fromEmail, toEmail, timeout) => {
 };
 
 export const validateEmail = async (req, res) => {
-  const { email } = req.body;
+  const { email, userId } = req.body;
 
   if (!email) {
     return res.json({
@@ -184,7 +183,9 @@ export const validateEmail = async (req, res) => {
       message: "Email is required",
     });
   }
-
+  const user = await User.findById(userId);
+  user.totalUsage += 1;
+  await user.save();
   if (!isValidSyntax(email)) {
     return res.json({
       status: "invalid",
