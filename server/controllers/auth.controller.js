@@ -231,7 +231,22 @@ export const verifyRegisterationOtp = async (req, res) => {
     newUser.loginHistory.push(loginHistory._id);
     await newUser.save();
     await PendingUser.deleteOne({ email });
+    const token = jwt.sign(
+      {
+        userId: newUser._id,
+        email: newUser.email,
+        role: newUser.role,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
     res.json({
       success: true,
       message: "OTP verified successfully, Login to continue.",
