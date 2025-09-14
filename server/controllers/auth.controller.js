@@ -223,7 +223,7 @@ export const verifyRegisterationOtp = async (req, res) => {
     const geoData = await getGeoData(ip);
 
     // 4. Save login history
-    const loginHistory = await loginHistoryModel.create({
+    const loginHistory = await LoginHistory.create({
       userId: newUser._id,
       ...geoData,
     });
