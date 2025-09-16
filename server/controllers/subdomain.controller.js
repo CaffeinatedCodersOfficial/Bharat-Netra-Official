@@ -1,5 +1,5 @@
-import { User } from "../models/user.model.js";
 import { scanSubdomains } from "../utils/subDomainScanner.js";
+import { updateWeekData } from "../utils/ApiAndToolsData.js";
 
 // Express controller for API route
 export const discoverSubdomains = async (req, res) => {
@@ -10,9 +10,9 @@ export const discoverSubdomains = async (req, res) => {
     }
 
     const results = await scanSubdomains(domain);
-    const user = await User.findById(userId);
-    user.totalUsage += 1;
-    await user.save();
+
+    await updateWeekData(userId, "Subdomain Finder");
+
     res.json({ domain, subdomains: results });
   } catch (error) {
     res.status(500).json({ error: error.message });

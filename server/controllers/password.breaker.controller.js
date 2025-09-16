@@ -2,6 +2,7 @@ import fs from "fs";
 import zlib from "zlib";
 import crypto from "crypto";
 import readline from "readline";
+import { updateWeekData } from "../utils/ApiAndToolsData.js";
 
 const detectHashType = (hash) => {
   hash = hash.toLowerCase().trim();
@@ -14,9 +15,11 @@ const detectHashType = (hash) => {
 };
 
 export const passwordBreaker = async (req, res) => {
-  const { targetHash } = req.body;
+  const { targetHash, userId } = req.body;
   const hashType = detectHashType(targetHash);
   const TIME_LIMIT = 8 * 1000;
+
+  await updateWeekData(userId, "Password Hash Breaker");
 
   if (hashType === "unknown") {
     return res.json({

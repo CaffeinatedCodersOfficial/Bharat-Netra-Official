@@ -1,7 +1,7 @@
 import dns from "dns";
 import fetch from "node-fetch";
 import * as whoiser from "whoiser";
-import { User } from "../models/user.model.js";
+import { updateWeekData } from "../utils/ApiAndToolsData.js";
 
 const VT_KEY = process.env.VIRUSTOTAL_API_KEY;
 const SHODAN_KEY = process.env.SHODAN_API_KEY;
@@ -43,7 +43,7 @@ const rdapLookup = async (ip) => {
 const geoLookup = async (ip) => {
   try {
     const r = await fetch(
-      `http://ip-api.com/json/${ip}?fields=status,message,country,regionName,city,lat,lon,isp,org,as,query,timezone,zip`
+      `http://ip-api.com/json/${ip}?fields=status,message,country,regionName,city,lat,lon,isp,org,as,query,timezone,zip`,
     );
     const json = await r.json();
     if (json.status !== "success")
@@ -62,7 +62,7 @@ const virusTotalLookup = async (ip) => {
       `https://www.virustotal.com/api/v3/ip_addresses/${ip}`,
       {
         headers: { "x-apikey": VT_KEY },
-      }
+      },
     );
     if (!r.ok)
       return { success: false, error: `vt status ${r.status}`, data: null };
@@ -108,7 +108,7 @@ const securityTrailsLookup = async (ip) => {
       {
         method: "GET",
         headers: { APIKEY: ST_KEY },
-      }
+      },
     );
 
     if (!r.ok)
@@ -130,8 +130,8 @@ const shodanLookup = async (ip) => {
   try {
     const r = await fetch(
       `https://api.shodan.io/shodan/host/${encodeURIComponent(
-        ip
-      )}?key=${encodeURIComponent(SHODAN_KEY)}`
+        ip,
+      )}?key=${encodeURIComponent(SHODAN_KEY)}`,
     );
     if (r.status === 404)
       return { success: false, error: "shodan: host not found", data: null };
@@ -160,12 +160,12 @@ const abuseIpdbLookup = async (ip) => {
   try {
     const r = await fetch(
       `https://api.abuseipdb.com/api/v2/check?ipAddress=${encodeURIComponent(
-        ip
+        ip,
       )}&maxAgeInDays=90`,
       {
         method: "GET",
         headers: { Key: ABUSEIPDB_KEY, Accept: "application/json" },
-      }
+      },
     );
     if (!r.ok)
       return {
@@ -256,9 +256,9 @@ export const lookupIP = async (req, res) => {
         abuseIpdbLookup(ip),
         securityTrailsLookup(ip),
       ]);
-    const user = await User.findById(userId);
-    user.totalUsage += 1;
-    await user.save();
+
+    await updateWeekData(userId, "Reverse IP Lookup");
+
     const rdapRaw = rdapRes.success ? rdapRes.data : null;
     const rdapOwner =
       rdapRaw?.network?.name ||
@@ -345,8 +345,8 @@ export const lookupIP = async (req, res) => {
       securitytrails: stRes.success
         ? stRes.data
         : stRes.error
-        ? { error: stRes.error }
-        : undefined,
+          ? { error: stRes.error }
+          : undefined,
     };
 
     return res.json(response);

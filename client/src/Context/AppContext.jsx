@@ -8,7 +8,7 @@ axios.defaults.withCredentials = true; // always send cookies
 
 export const AppContextProvider = ({ children }) => {
   const backendUrl = "https://bharat-netra-official.onrender.com";
-// const backendUrl = "http://localhost:4000"
+  // const backendUrl = "http://localhost:4000";
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
@@ -19,7 +19,6 @@ export const AppContextProvider = ({ children }) => {
     try {
       const { data } = await axios.get(`${backendUrl}/api/user/user-data`);
       if (data.success) {
-        
         setUserData(data.userData);
       } else {
         setUserData(null);
@@ -72,8 +71,6 @@ export const AppContextProvider = ({ children }) => {
   };
 
   return (
-    <AppContext.Provider value={contextValue}>
-      {children}
-    </AppContext.Provider>
+    <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
   );
 };

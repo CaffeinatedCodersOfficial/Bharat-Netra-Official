@@ -1,5 +1,4 @@
-import { User } from "../models/user.model.js";
-
+import { updateWeekData } from "../utils/ApiAndToolsData.js";
 export const macAddressLookup = async (req, res) => {
   const API_KEY = process.env.MAC_API_KEY;
   const { macAddress, userId } = req.body;
@@ -22,11 +21,11 @@ export const macAddressLookup = async (req, res) => {
 
   try {
     const response = await fetch(
-      `https://api.macaddress.io/v1?apiKey=${API_KEY}&output=json&search=${macAddress}`
+      `https://api.macaddress.io/v1?apiKey=${API_KEY}&output=json&search=${macAddress}`,
     );
-    const user = await User.findById(userId);
-    user.totalUsage += 1;
-    await user.save();
+
+    await updateWeekData(userId, "Malware Check");
+
     if (!response.ok) {
       return res.json({
         success: false,

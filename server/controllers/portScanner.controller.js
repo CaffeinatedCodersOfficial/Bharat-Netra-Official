@@ -1,5 +1,5 @@
 import net from "net";
-import { User } from "../models/user.model.js";
+import { updateWeekData } from "../utils/ApiAndToolsData.js";
 
 // Function to scan a single port
 const scanPort = (host, port, timeout = 2000) => {
@@ -30,11 +30,11 @@ export const scanPorts = async (req, res) => {
 
   try {
     const results = await Promise.all(
-      ports.map((port) => scanPort(host, port))
+      ports.map((port) => scanPort(host, port)),
     );
-    const user = await User.findById(userId);
-    user.totalUsage += 1;
-    await user.save();
+
+    await updateWeekData(userId, "Port Scanner");
+
     res.json({ host, results });
   } catch (err) {
     res

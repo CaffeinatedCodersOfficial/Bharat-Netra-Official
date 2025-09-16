@@ -1,15 +1,17 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Menu, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { AppContext } from "../Context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 
 const Navbar = () => {
-  const { isLoggedIn, userData, backendUrl, setIsLoggedIn } = useContext(AppContext);
+  const { isLoggedIn, userData, backendUrl, setIsLoggedIn } =
+    useContext(AppContext);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const url = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,16 +23,14 @@ const Navbar = () => {
   }, []);
 
   const firstName =
-    isLoggedIn && userData?.name
-      ? userData.name.charAt(0).toUpperCase()
-      : "U";
+    isLoggedIn && userData?.name ? userData.name.charAt(0).toUpperCase() : "U";
 
   const logout = async () => {
     try {
       const { data } = await axios.post(
         backendUrl + "/api/auth/logout",
         {},
-        { withCredentials: true }
+        { withCredentials: true },
       );
       if (data.success) {
         toast.success(data.message);
@@ -55,17 +55,25 @@ const Navbar = () => {
 
       {/* Desktop Menu */}
       <ul className="hidden md:flex justify-center items-center gap-8 text-white">
-        <a href="#home">
-          <li className="text-lg cursor-pointer hover:text-[#880bd1] transition">Home</li>
+        <a href={url?.pathname === "/" ? "#home" : "/#home"}>
+          <li className="text-lg cursor-pointer hover:text-[#880bd1] transition">
+            Home
+          </li>
         </a>
-        <a href="#about">
-          <li className="text-lg cursor-pointer hover:text-[#880bd1] transition">About</li>
+        <a href={url?.pathname === "/" ? "#about" : "/#about"}>
+          <li className="text-lg cursor-pointer hover:text-[#880bd1] transition">
+            About
+          </li>
         </a>
-        <a href="#stats">
-          <li className="text-lg cursor-pointer hover:text-[#880bd1] transition">Stats</li>
+        <a href={url?.pathname === "/" ? "#stats" : "/#stats"}>
+          <li className="text-lg cursor-pointer hover:text-[#880bd1] transition">
+            Stats
+          </li>
         </a>
-        <a href="#team">
-          <li className="text-lg cursor-pointer hover:text-[#880bd1] transition">Team</li>
+        <a href={url?.pathname === "/" ? "#team" : "/#team"}>
+          <li className="text-lg cursor-pointer hover:text-[#880bd1] transition">
+            Team
+          </li>
         </a>
 
         {/* User Dropdown */}
@@ -121,19 +129,35 @@ const Navbar = () => {
           </button>
         </div>
         <ul className="flex flex-col items-start px-6 py-6 gap-6 text-lg text-white">
-          <li className="cursor-pointer hover:text-[#880bd1] transition">Home</li>
-          <li className="cursor-pointer hover:text-[#880bd1] transition">About</li>
-          <li className="cursor-pointer hover:text-[#880bd1] transition">Stats</li>
-          <li className="cursor-pointer hover:text-[#880bd1] transition">Team</li>
+          <li className="cursor-pointer hover:text-[#880bd1] transition">
+            Home
+          </li>
+          <li className="cursor-pointer hover:text-[#880bd1] transition">
+            About
+          </li>
+          <li className="cursor-pointer hover:text-[#880bd1] transition">
+            Stats
+          </li>
+          <li className="cursor-pointer hover:text-[#880bd1] transition">
+            Team
+          </li>
 
           {/* Mobile User Options */}
           {isLoggedIn && firstName && (
             <>
-              <li className="cursor-pointer hover:text-[#880bd1] transition">{firstName}</li>
-              <Link to="/dashboard" className="cursor-pointer hover:text-[#880bd1] transition">
+              <li className="cursor-pointer hover:text-[#880bd1] transition">
+                {firstName}
+              </li>
+              <Link
+                to="/dashboard"
+                className="cursor-pointer hover:text-[#880bd1] transition"
+              >
                 Dashboard
               </Link>
-              <button onClick={logout} className="cursor-pointer hover:text-[#880bd1] transition">
+              <button
+                onClick={logout}
+                className="cursor-pointer hover:text-[#880bd1] transition"
+              >
                 Logout
               </button>
             </>

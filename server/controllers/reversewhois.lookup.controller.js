@@ -1,8 +1,9 @@
 import axios from "axios";
+import { updateWeekData } from "../utils/ApiAndToolsData.js";
 
 export const reverseWhois = async (req, res) => {
   try {
-    const { query } = req.body; // e.g. email, org, name
+    const { query, userId } = req.body; // e.g. email, org, name
     if (!query) {
       return res.json({ success: false, message: "Query is required" });
     }
@@ -10,8 +11,10 @@ export const reverseWhois = async (req, res) => {
     // Example: ViewDNS API
     const apiKey = process.env.VIEWDNS_API;
     const url = `https://api.viewdns.info/reversewhois/?q=${encodeURIComponent(
-      query
+      query,
     )}&apikey=${apiKey}&output=json`;
+
+    await updateWeekData(userId, "Reverse WHOIS Lookup");
 
     const { data } = await axios.get(url);
 

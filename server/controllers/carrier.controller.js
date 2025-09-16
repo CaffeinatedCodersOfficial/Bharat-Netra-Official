@@ -1,6 +1,6 @@
 // controllers/carrier.controller.js
 import axios from "axios";
-import { User } from "../models/user.model.js";
+import { updateWeekData } from "../utils/ApiAndToolsData.js";
 
 export const carrierLookup = async (req, res) => {
   try {
@@ -16,9 +16,9 @@ export const carrierLookup = async (req, res) => {
         key: process.env.VERIPHONE_API_KEY,
       },
     });
-    const user = await User.findById(userId);
-    user.totalUsage += 1;
-    await user.save();
+
+    await updateWeekData(userId, "Mobile Carrier Lookupa");
+
     res.json({
       phone: response.data.phone,
       international: response.data.international_number,

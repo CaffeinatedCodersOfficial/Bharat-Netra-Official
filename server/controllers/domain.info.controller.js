@@ -1,5 +1,5 @@
 import whois from "whois";
-import { User } from "../models/user.model.js";
+import { updateWeekData } from "../utils/ApiAndToolsData.js";
 
 export const getDomainInfo = async (req, res) => {
   try {
@@ -7,9 +7,9 @@ export const getDomainInfo = async (req, res) => {
     if (!domain) {
       return res.json({ success: false, message: "Domain is required" });
     }
-    const user = await User.findById(userId);
-    user.totalUsage += 1;
-    await user.save();
+
+    await updateWeekData(userId, "WHOIS Lookup");
+
     whois.lookup(domain, (err, data) => {
       data = formatData({ whoisData: data });
       if (err) return res.json({ success: false, error: err.message });
