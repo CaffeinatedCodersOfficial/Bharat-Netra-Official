@@ -17,7 +17,7 @@ export const carrierLookup = async (req, res) => {
       },
     });
 
-    await updateWeekData(userId, "Mobile Carrier Lookupa");
+    await updateWeekData(userId, "Mobile Carrier Lookup");
 
     res.json({
       phone: response.data.phone,

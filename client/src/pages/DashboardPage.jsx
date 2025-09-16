@@ -8,7 +8,7 @@ import {
   Clock,
   BarChart3,
   AlertTriangle,
-  Server ,
+  Server,
 } from "lucide-react";
 import {
   LineChart,
@@ -26,31 +26,49 @@ import { useContext } from "react";
 import { AppContext } from "../Context/AppContext";
 import { useEffect } from "react";
 
-
 const DashboardPage = () => {
-    const {refreshAuth, userData, isLoggedIn} = useContext(AppContext);
-    console.log(userData);
-    
-  const user = {
-  name: userData?.name,
-  email: userData?.email,
-  role: userData?.role,
-  lastLogin: userData?.lastLogin 
-    ? new Date(userData.lastLogin).toLocaleString("en-IN", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "Never logged in", // fallback if no login yet
-  accountStatus: isLoggedIn ? "Active" : "Inactive",
-};
+  const {
+    refreshAuth,
+    userData,
+    isLoggedIn,
+    fetchTodaysData,
+    fetchWeekData,
+    todaysData,
+    weekData,
+  } = useContext(AppContext);
 
+  useEffect(() => {
+    fetchTodaysData();
+    fetchWeekData();
+  }, []);
+
+  const user = {
+    name: userData?.name,
+    email: userData?.email,
+    role: userData?.role,
+    lastLogin: userData?.lastLogin
+      ? new Date(userData.lastLogin).toLocaleString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "Never logged in", // fallback if no login yet
+    accountStatus: isLoggedIn ? "Active" : "Inactive",
+  };
 
   const stats = [
-    { icon: Cpu, label: "API Calls", value: userData?.totalUsage },
-    { icon: Database, label: "Tools Used", value: "8" },
+    {
+      icon: Cpu,
+      label: "API Calls",
+      value: todaysData?.totalApiCalls ?? "N/A",
+    },
+    {
+      icon: Database,
+      label: "Tools Used",
+      value: todaysData?.toolsUsed.length ?? "N/A",
+    },
     { icon: Activity, label: "Active Sessions", value: "5" },
     { icon: Shield, label: "Security Flags", value: "2" },
   ];
@@ -64,28 +82,70 @@ const DashboardPage = () => {
 
   // Dummy Data for Graphs
   const apiUsageData = [
-    { day: "Mon", calls: 1200 },
-    { day: "Tue", calls: 2100 },
-    { day: "Wed", calls: 1800 },
-    { day: "Thu", calls: 2500 },
-    { day: "Fri", calls: 2200 },
-    { day: "Sat", calls: 2700 },
-    { day: "Sun", calls: 1900 },
+    { day: "Mon", calls: weekData?.dailyUsage?.[1]?.totalApiCalls },
+    { day: "Tue", calls: weekData?.dailyUsage?.[2]?.totalApiCalls },
+    { day: "Wed", calls: weekData?.dailyUsage?.[3]?.totalApiCalls },
+    { day: "Thu", calls: weekData?.dailyUsage?.[4]?.totalApiCalls },
+    { day: "Fri", calls: weekData?.dailyUsage?.[5]?.totalApiCalls },
+    { day: "Sat", calls: weekData?.dailyUsage?.[6]?.totalApiCalls },
+    { day: "Sun", calls: weekData?.dailyUsage?.[0]?.totalApiCalls },
   ];
 
   const toolsUsageData = [
-    { name: "WHOIS", value: 400 },
-    { name: "IP History", value: 300 },
-    { name: "DNS Lookup", value: 200 },
-    { name: "SSL Checker", value: 300 },
-    { name: "Malware Check", value: 200 },
+    { name: "WHOIS Lookup", value: 0 },
+    { name: "Subdomain Finder", value: 0 },
+    { name: "Password Hash Breaker", value: 0 },
+    { name: "IP History Lookup", value: 0 },
+    { name: "Reverse IP Lookup", value: 0 },
+    { name: "Reverse WHOIS Lookup", value: 0 },
+    { name: "Port Scanner", value: 0 },
+    { name: "Bulk IP Lookup", value: 0 },
+    { name: "Abuse Contact Lookup", value: 0 },
+    { name: "Malware Check", value: 0 },
+    { name: "Email Header Analyzer", value: 0 },
+    { name: "Mobile Carrier Lookup", value: 0 },
+    { name: "Reverse Image Search", value: 0 },
+    { name: "Email Validator", value: 0 },
+    { name: "MAC Address Lookup", value: 0 },
   ];
+
+  if (weekData?.dailyUsage?.length) {
+    weekData.dailyUsage
+      .filter((day) => day?.totalApiCalls > 0) // only days with activity
+      .forEach((day) => {
+        day?.toolsUsed?.forEach((tool) => {
+          const toolEntry = toolsUsageData.find(
+            (t) => t.name === tool.toolName,
+          );
+          if (toolEntry) {
+            toolEntry.value += tool.apiCallsCount ?? 0; // add counts safely
+          }
+        });
+      });
+  }
+
   const COLORS = [
-  "#880bd1", "#00C49F", "#FFBB28", "#FF4444", "#0088FE",
-  "#FF8042", "#AF19FF", "#FF6F91", "#00CFFF", "#2ECC71",
-  "#FF5733", "#C70039", "#900C3F", "#581845", "#1ABC9C",
-  "#F1C40F", "#E67E22", "#2E86C1", "#16A085", "#D35400"
-];
+    "#880bd1",
+    "#00C49F",
+    "#FFBB28",
+    "#FF4444",
+    "#0088FE",
+    "#FF8042",
+    "#AF19FF",
+    "#FF6F91",
+    "#00CFFF",
+    "#2ECC71",
+    "#FF5733",
+    "#C70039",
+    "#900C3F",
+    "#581845",
+    "#1ABC9C",
+    "#F1C40F",
+    "#E67E22",
+    "#2E86C1",
+    "#16A085",
+    "#D35400",
+  ];
 
   return (
     <div className="relative w-full min-h-screen bg-gradient-to-b from-black via-[#0a0016] to-black text-white px-6 py-20 overflow-hidden">
@@ -113,7 +173,9 @@ const DashboardPage = () => {
               </p>
               <p className="mt-2 text-sm">
                 Status:{" "}
-                <span className={`${isLoggedIn ? "text-green-400":"text-red-600"} font-semibold`}>
+                <span
+                  className={`${isLoggedIn ? "text-green-400" : "text-red-600"} font-semibold`}
+                >
                   {user.accountStatus}
                 </span>
               </p>

@@ -12,6 +12,8 @@ export const AppContextProvider = ({ children }) => {
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [todaysData, setTodaysData] = useState(null);
+  const [weekData, setWeekData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -26,6 +28,40 @@ export const AppContextProvider = ({ children }) => {
       }
     } catch (err) {
       setUserData(null);
+      setError(err.message);
+      toast.error(err.message);
+    }
+  };
+
+  //fetch today's Data
+  const fetchTodaysData = async () => {
+    try {
+      const { data } = await axios.get(`${backendUrl}/api/user/todays-data`);
+      if (data.success) {
+        setTodaysData(data.apiData);
+      } else {
+        setTodaysData(null);
+        toast.error(data.message || "Failed to fetch user data");
+      }
+    } catch (err) {
+      setTodaysData(null);
+      setError(err.message);
+      toast.error(err.message);
+    }
+  };
+
+  //fetch weeks's Data
+  const fetchWeekData = async () => {
+    try {
+      const { data } = await axios.get(`${backendUrl}/api/user/week-data`);
+      if (data.success) {
+        setWeekData(data.apiData);
+      } else {
+        setWeekData(null);
+        toast.error(data.message || "Failed to fetch user data");
+      }
+    } catch (err) {
+      setWeekData(null);
       setError(err.message);
       toast.error(err.message);
     }
@@ -64,6 +100,10 @@ export const AppContextProvider = ({ children }) => {
     setIsLoggedIn,
     userData,
     setUserData,
+    todaysData,
+    fetchTodaysData,
+    weekData,
+    fetchWeekData,
     loading,
     error,
     checkAuth,
