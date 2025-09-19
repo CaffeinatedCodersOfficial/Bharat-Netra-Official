@@ -11,7 +11,6 @@ const weeklyDataSchema = new mongoose.Schema(
     weekStartDate: {
       type: String, // 'YYYY-MM-DD' format
       index: true,
-      unique: true,
       required: true,
     },
 
@@ -53,5 +52,7 @@ const weeklyDataSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+weeklyDataSchema.index({ userId: 1, weekStartDate: 1 }, { unique: true });
 
 export const WeeklyData = mongoose.model("WeeklyData", weeklyDataSchema);
