@@ -46,7 +46,7 @@ export const getIPHistory = async (req, res) => {
     }));
 
     return res.json({ domain, records });
-  } catch (error) {
+  }}} catch (error) {
     console.error("IP History Error:", error.message);
     return res.status(500).json({ error: "Failed to fetch IP history" });
   }
@@ -92,4 +92,4 @@ export const reverseIPLookup = async (req, res) => {
       error: error.response?.data?.message || "No data found",
     });
   }
-};
+}
