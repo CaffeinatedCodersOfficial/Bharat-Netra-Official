@@ -1,10 +1,12 @@
-import * as cheerio from "cheerio";
 import axios from "axios";
 import { updateWeekData } from "../utils/ApiAndToolsData.js";
 
-export const getIpHistory = async (req, res) => {
-  const { domain, userId } = req.query;
-  if (!domain) return res.status(400).json({ error: "Domain is required" });
+export const getIPHistory = async (req, res) => {
+  const { domain } = req.body;
+
+  if (!domain) {
+    return res.status(400).json({ error: "Domain is required" });
+  }
 
   try {
     const apiKey = process.env.VIEWDNS_API;
@@ -25,46 +27,69 @@ export const getIpHistory = async (req, res) => {
             lastSeen: r.lastseen,
           }))
           .filter((r) => r.ip && r.ip.includes(".") && r.lastSeen);
+    // SecurityTrails Historical DNS A Records API
+    const response = await axios.get(
+      `https://api.securitytrails.com/v1/history/${domain}/dns/a`,
+      {
+        headers: { APIKEY: process.env.SECURITYTRAILS_API_KEY },
       }
-    } else {
-      // Fallback: Scraping HTML
-      const url = `https://viewdns.info/iphistory/?domain=${domain}`;
-      const { data } = await axios.get(url, {
-        headers: { "User-Agent": "Mozilla/5.0" },
-      });
+    );
 
-      const $ = cheerio.load(data);
-      $("table tr").each((i, row) => {
-        if (i === 0) return; // skip header row
-        const cols = $(row).find("td");
-        if (cols.length >= 3) {
-          const ip = $(cols[0]).text().trim();
-          const location = $(cols[1]).text().trim();
-          let lastSeen = $(cols[2]).text().trim();
-
-          if (!/\d{4}-\d{2}-\d{2}/.test(lastSeen)) lastSeen = null;
-
-          if (ip && ip.includes(".") && lastSeen) {
-            records.push({ ip, location, lastSeen });
-          }
-        }
-      });
+    if (!response.data || !response.data.records) {
+      return res.status(404).json({ error: "No IP history found" });
     }
 
-    // Remove duplicate IPs
-    const seen = new Set();
-    records = records.filter((r) => {
-      if (seen.has(r.ip)) return false;
-      seen.add(r.ip);
-      return true;
-    });
-
-    // Limit to 10 latest records
-    records = records.slice(0, 10);
+    const records = response.data.records.map((rec) => ({
+      ip: rec.values?.[0]?.ip || "N/A",
+      firstSeen: rec.first_seen || "N/A",
+      lastSeen: rec.last_seen || "N/A",
+    }));
 
     return res.json({ domain, records });
-  } catch (err) {
-    console.error("❌ IP History Error:", err);
-    return res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error("IP History Error:", error.message);
+    return res.status(500).json({ error: "Failed to fetch IP history" });
+  }
+};
+
+export const reverseIPLookup = async (req, res) => {
+  const { ip } = req.body;
+
+  if (!ip) {
+    return res.status(400).json({ error: "IP address is required" });
+  }
+
+  try {
+    const response = await axios.get(
+      `https://api.securitytrails.com/v1/ips/nearby/${ip}`,
+      { headers: { APIKEY: process.env.SECURITYTRAILS_API_KEY } }
+    );
+
+    const records = response.data?.records || [];
+
+    return res.json({
+      ip,
+      hosts: records.map((r) => ({
+        ip: r.ip || "N/A",
+        hostname: r.hostname || r.host || "N/A",
+      })),
+      geo: null,
+      ptr: [],
+      rdap: null,
+      whois: null,
+    });
+  } catch (error) {
+    console.error("❌ Reverse IP Error:", error.response?.data || error.message);
+
+    // Return empty object instead of HTTP 404
+    return res.json({
+      ip,
+      hosts: [],
+      geo: null,
+      ptr: [],
+      rdap: null,
+      whois: null,
+      error: error.response?.data?.message || "No data found",
+    });
   }
 };

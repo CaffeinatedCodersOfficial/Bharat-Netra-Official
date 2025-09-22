@@ -1,33 +1,60 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import axios from "axios";
-import { useContext } from "react";
 import { AppContext } from "../Context/AppContext";
 
 const tools = [
   "WHOIS Lookup",
   "Subdomain Finder",
-  "Password Hash Breaker",
   "IP History Lookup",
+  "MAC Address Lookup",
+  "Mobile Carrier Lookup",
+  "Malware Check",
+  "Password Hash Breaker",
+  "Port Scanner",
   "Reverse IP Lookup",
   "Reverse WHOIS Lookup",
-  "Port Scanner",
   "Bulk IP Lookup",
   "Abuse Contact Lookup",
-  "Malware Check",
   "Email Header Analyzer",
-  "Mobile Carrier Lookup",
   "Reverse Image Search",
   "Email Validator",
-  "MAC Address Lookup",
 ];
 
-// Helper for formatting contacts in RDAP/WHOIS
+// map tool -> placeholder text
+const placeholders = {
+  "WHOIS Lookup": "Enter domain (example.com)...",
+  "Subdomain Finder": "Enter domain to discover subdomains (example.com)...",
+  "IP History Lookup": "Enter domain to check IP history (example.com)...",
+  "Password Hash Breaker": "Enter hash to attempt to break (e.g. 5f4dcc3b...)",
+  "Port Scanner": "Enter host and ports (example.com 80,443,8080)...",
+  "Reverse IP Lookup": "Enter IP address (e.g., 8.8.8.8)...",
+  "Reverse WHOIS Lookup": "Enter domain or email to perform reverse WHOIS...",
+  "Bulk IP Lookup": "Enter comma separated IPs or CIDR (e.g. 8.8.8.8,1.1.1.0/24)...",
+  "Abuse Contact Lookup": "Enter IP or domain to find abuse contacts...",
+  "Malware Check": "Enter URL or file hash to check for malware (https://... or sha256)...",
+  "Email Header Analyzer": "Paste full email headers to analyze...",
+  "Mobile Carrier Lookup": "Enter phone number with country code (e.g. +919876543210)...",
+  "Reverse Image Search": "Enter image URL to perform reverse image search...",
+  "Email Validator": "Enter email to validate (user@example.com)...",
+  "MAC Address Lookup": "Enter MAC address (e.g. 00:1A:2B:3C:4D:5E)...",
+};
+
+// Helper for formatting contacts in RDAP/WHOIS (kept from your original)
 function formatContact(entity) {
   if (!entity) return null;
-  const emails = (entity.vcard_array || []).filter((v) => v.name === "email").map((v) => v.values).flat();
-  const phones = (entity.vcard_array || []).filter((v) => v.name === "tel").map((v) => v.values).flat();
-  const names = (entity.vcard_array || []).filter((v) => v.name === "fn").map((v) => v.values).flat();
+  const emails = (entity.vcard_array || [])
+    .filter((v) => v.name === "email")
+    .map((v) => v.values)
+    .flat();
+  const phones = (entity.vcard_array || [])
+    .filter((v) => v.name === "tel")
+    .map((v) => v.values)
+    .flat();
+  const names = (entity.vcard_array || [])
+    .filter((v) => v.name === "fn")
+    .map((v) => v.values)
+    .flat();
 
   return [
     `Name: ${names.join(", ") || "N/A"}`,
@@ -39,7 +66,7 @@ function formatContact(entity) {
 
 function summarizeMalwareData(data) {
   if (!data?.attributes) return "No VirusTotal data.";
-  const stats = data.attributes.last_analysis_stats;
+  const stats = data.attributes.last_analysis_stats || {};
   const totalEngines = Object.values(stats).reduce((a, b) => a + b, 0);
 
   let status = "Safe";
@@ -55,7 +82,7 @@ function summarizeMalwareData(data) {
   }
 
   return `Status: ${status}
-Detections: ${stats.malicious} / ${totalEngines}
+Detections: ${stats.malicious || 0} / ${totalEngines || 0}
 Malicious engines: ${maliciousEngines.length ? maliciousEngines.join(", ") : "None"}`;
 }
 
@@ -65,7 +92,6 @@ function displayIPReport(res) {
   const lines = [];
   lines.push(`Reverse IP Lookup for ${res.ip}`);
 
-  // Geo Info
   if (res.geo) {
     lines.push(`Geo Info: 
   Country: ${res.geo.country || "N/A"}
@@ -76,10 +102,8 @@ function displayIPReport(res) {
   Coords: (${res.geo.lat}, ${res.geo.lon})`);
   }
 
-  // PTR
   lines.push(`PTR Records: ${res.ptr?.length ? res.ptr.join(", ") : "None"}`);
 
-  // RDAP (Simple, as in your data)
   if (res.rdap) {
     lines.push(`RDAP:
   Org: ${res.rdap.owner || res.rdap.network?.name || "N/A"}
@@ -89,20 +113,18 @@ function displayIPReport(res) {
   Success: ${typeof res.rdap.success === "boolean" ? (res.rdap.success ? "Yes" : "No") : "N/A"}`);
   }
 
-  // WHOIS
   if (res.whois) {
     lines.push(`WHOIS:
 ${res.whois.substring(0, 500)}${res.whois.length > 500 ? "...(truncated)" : ""}`);
   }
 
-  // VirusTotal
   if (res.virusTotal?.summary) {
     const vt = res.virusTotal.summary;
     lines.push(`VirusTotal:
   Reputation: ${vt.reputation}
-  Detections: ${vt.last_analysis_stats.malicious} malicious
-  Harmless: ${vt.last_analysis_stats.harmless}
-  Undetected: ${vt.last_analysis_stats.undetected}
+  Detections: ${vt.last_analysis_stats?.malicious || 0} malicious
+  Harmless: ${vt.last_analysis_stats?.harmless || 0}
+  Undetected: ${vt.last_analysis_stats?.undetected || 0}
   Tags: ${(vt.tags || []).join(", ") || "None"}`);
 
     if (res.virusTotal.raw?.data?.attributes?.last_analysis_results) {
@@ -124,15 +146,19 @@ ${res.whois.substring(0, 500)}${res.whois.length > 500 ? "...(truncated)" : ""}`
 }
 
 const Terminal = () => {
-  const {backendUrl} = useContext(AppContext);
+  const { backendUrl } = useContext(AppContext);
   const [selectedTool, setSelectedTool] = useState(null);
   const [history, setHistory] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
+  const [placeholder, setPlaceholder] = useState("Enter input...");
   const inputRef = useRef(null);
 
   useEffect(() => {
-    if (selectedTool && inputRef.current) inputRef.current.focus();
+    if (selectedTool) {
+      setPlaceholder(placeholders[selectedTool] || "Enter input...");
+      if (inputRef.current) inputRef.current.focus();
+    }
   }, [selectedTool]);
 
   const handleToolClick = (tool) => {
@@ -140,6 +166,7 @@ const Terminal = () => {
     setHistory([`⚡ ${tool} terminal opened`]);
     setInputValue("");
     setLoading(false);
+    setPlaceholder(placeholders[tool] || "Enter input...");
   };
 
   const handleBack = () => {
@@ -147,6 +174,7 @@ const Terminal = () => {
     setHistory([]);
     setInputValue("");
     setLoading(false);
+    setPlaceholder("Enter input...");
   };
 
   const handleInputKey = async (e) => {
@@ -166,18 +194,36 @@ const Terminal = () => {
       return;
     }
 
+    // echo command in terminal
     setHistory((prev) => [...prev, `$ ${command}`]);
     setInputValue("");
     setLoading(true);
 
     try {
-      if (selectedTool === "WHOIS Lookup") {
+
+      if (selectedTool === "Reverse IP Lookup") {
+        // POST { ip: command } to /api/ip/reverse-ip-lookup
+        const res = await axios.post(
+          `${backendUrl}/api/ip/reverse-ip-lookup`,
+          { ip: command }
+        );
+        if (res.data && res.data.ip) {
+          setHistory((prev) => [...prev, displayIPReport(res.data)]);
+        } else {
+          setHistory((prev) => [...prev, "No Reverse IP data found"]);
+        }
+        setLoading(false);
+        return;
+      }
+      // WHOIS Lookup
+      else if (selectedTool === "WHOIS Lookup") {
         const res = await axios.post(backendUrl + "/api/domain/domain-info", {
           domain: command,
         });
         setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
       }
 
+      // Subdomain Finder
       else if (selectedTool === "Subdomain Finder") {
         const res = await axios.post(
           backendUrl + "/api/subdomain/discover-subdomain",
@@ -195,15 +241,35 @@ const Terminal = () => {
         }
       }
 
+      // IP History Lookup (POST)
       else if (selectedTool === "IP History Lookup") {
-        const res = await axios.get(
-          backendUrl + `/api/ip/ip-history?domain=${command}`,
-        );
+        // send POST { domain: command } to backendUrl + "/api/ip/ip-history"
+        const res = await axios.post(backendUrl + "/api/ip/ip-history", {
+          domain: command,
+        });
+
+        // Example expected response:
+        // {
+        //   domain: "youtube.com",
+        //   records: [
+        //     { ip: "142.251.167.136", firstSeen: "2025-09-19", lastSeen: "2025-09-22" },
+        //     ...
+        //   ]
+        // }
+
+        if (res.data?.domain) {
+          setHistory((prev) => [
+            ...prev,
+            `📡 IP History for ${res.data.domain}:`,
+          ]);
+        }
+
         if (res.data.records?.length > 0) {
+          // iterate and append each record in readable format
           res.data.records.forEach((rec) =>
             setHistory((prev) => [
               ...prev,
-              `${rec.ip} | ${rec.location} | Last Seen: ${rec.lastSeen}`,
+              `${rec.ip}  |  First Seen: ${rec.firstSeen || "N/A"}  |  Last Seen: ${rec.lastSeen || "N/A"}`,
             ])
           );
         } else {
@@ -211,20 +277,7 @@ const Terminal = () => {
         }
       }
 
-      else if (selectedTool === "Reverse IP Lookup") {
-        const res = await axios.post(backendUrl + "/api/reverseip/lookup", {
-          ip: command,
-        });
-        if (res.data) {
-          setHistory((prev) => [
-            ...prev,
-            displayIPReport(res.data),
-          ]);
-        } else {
-          setHistory((prev) => [...prev, "No Reverse IP data found"]);
-        }
-      }
-
+      // Email Validator
       else if (selectedTool === "Email Validator") {
         const res = await axios.post(backendUrl + "/api/email/validate-email", {
           email: command,
@@ -232,6 +285,7 @@ const Terminal = () => {
         setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
       }
 
+      // Malware Check
       else if (selectedTool === "Malware Check") {
         const res = await axios.post(
           backendUrl + "/api/malware/check-malware",
@@ -241,9 +295,10 @@ const Terminal = () => {
         );
         if (res.data?.data) {
           const summary = summarizeMalwareData(res.data.data);
+          // show the command used + summary
           setHistory((prev) => [
             ...prev,
-            `Malware Check Result for ${summary.url}:`,
+            `Malware Check Result for ${command}:`,
             summary,
           ]);
         } else {
@@ -254,6 +309,7 @@ const Terminal = () => {
         }
       }
 
+      // Port Scanner
       else if (selectedTool === "Port Scanner") {
         const [host, portsStr] = command.split(" ");
         if (!host || !portsStr) {
@@ -273,6 +329,7 @@ const Terminal = () => {
         }
       }
 
+      // MAC Address Lookup
       else if (selectedTool === "MAC Address Lookup") {
         const res = await axios.post(
           backendUrl + "/api/macAddress/macAdd-lookup",
@@ -280,14 +337,18 @@ const Terminal = () => {
             macAddress: command,
           },
         );
+        // small delay to show loading feel (optional)
         setTimeout(() => {
           if (res.data) {
             setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
-            setLoading(false);
           }
+          setLoading(false);
         }, 800);
+        // skip setting loading=false here since we handle it in timeout
+        return;
       }
-      //Password Hash Breaker
+
+      // Password Hash Breaker
       else if (selectedTool === "Password Hash Breaker") {
         const res = await axios.post(
           backendUrl + "/api/password/pass-breaker",
@@ -298,11 +359,13 @@ const Terminal = () => {
         setTimeout(() => {
           if (res.data) {
             setHistory((prev) => [...prev, JSON.stringify(res.data, null, 2)]);
-            setLoading(false);
           }
+          setLoading(false);
         }, 800);
+        return;
       }
 
+      // Mobile Carrier Lookup
       else if (selectedTool === "Mobile Carrier Lookup") {
         const res = await axios.post(
           backendUrl + "/api/carrier/check-carrier",
@@ -319,6 +382,7 @@ const Terminal = () => {
         ]);
       }
 
+      // default unimplemented
       else {
         setHistory((prev) => [
           ...prev,
@@ -395,35 +459,7 @@ const Terminal = () => {
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={handleInputKey}
                   className="flex-1 bg-transparent border-none outline-none text-white caret-[#880bd1] placeholder-gray-500 text-sm md:text-base"
-                  placeholder={
-                    selectedTool === "Subdomain Finder"
-                      ? "Enter domain to discover subdomains..."
-                      : selectedTool === "IP History Lookup"
-                      ? "Enter domain to check IP history..."
-                      : selectedTool === "Reverse IP Lookup"
-                      ? "Enter IP address (e.g., 8.8.8.8)..."
-                      : selectedTool === "Email Validator"
-                      ? "Enter email to validate"
-                      : selectedTool === "Malware Check"
-                      ? "Enter URL to check for malware..."
-                      : selectedTool === "Port Scanner"
-                      ? "Enter host and ports (example.com 80,443,8080)..."
-                      : selectedTool === "MAC Address Lookup"
-                      ? "Enter MAC Address"
-                      : "Enter input..."
-                        ? "Enter domain to check IP history..."
-                        : selectedTool === "Email Validator"
-                          ? "Enter email to validate"
-                          : selectedTool === "Malware Check"
-                            ? "Enter URL to check for malware..."
-                            : selectedTool === "Port Scanner"
-                              ? "Enter host and ports (example.com 80,443,8080)..."
-                              : selectedTool === "MAC Address Lookup"
-                                ? "Enter Mac Address"
-                                : selectedTool === "Password Hash Breaker"
-                                  ? "Enter hash to break"
-                                  : "Enter your domain..."
-                  }
+                  placeholder={placeholder}
                   autoFocus
                 />
               </div>
