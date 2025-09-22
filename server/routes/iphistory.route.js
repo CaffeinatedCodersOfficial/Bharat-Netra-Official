@@ -1,9 +1,13 @@
 // routes/ipHistory.routes.js
 import express from "express";
-import { getIpHistory } from "../controllers/iphistory.controller.js";
+import {
+  getIPHistory,
+  reverseIPLookup,
+} from "../controllers/iphistory.controller.js";
 
 const ipHistoryRouter = express.Router();
 
-ipHistoryRouter.get("/ip-history", getIpHistory);
+ipHistoryRouter.post("/ip-history", getIPHistory);
+ipHistoryRouter.post("/reverse-ip-history", reverseIPLookup);
 
 export default ipHistoryRouter;

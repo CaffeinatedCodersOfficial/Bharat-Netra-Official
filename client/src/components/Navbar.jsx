@@ -55,9 +55,9 @@ const Navbar = () => {
 
       {/* Desktop Menu */}
       <ul className="hidden md:flex justify-center items-center gap-8 text-white">
-        <a href="#home">
-          <li className="text-lg cursor-pointer hover:text-[#880bd1] transition">Home</li>
-        </a>
+        <Link to="/">
+          <a href="#home"><li className="text-lg cursor-pointer hover:text-[#880bd1] transition">Home</li></a>
+        </Link>
         <a href="#about">
           <li className="text-lg cursor-pointer hover:text-[#880bd1] transition">About</li>
         </a>
