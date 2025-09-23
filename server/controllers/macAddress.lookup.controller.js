@@ -24,7 +24,7 @@ export const macAddressLookup = async (req, res) => {
       `https://api.macaddress.io/v1?apiKey=${API_KEY}&output=json&search=${macAddress}`,
     );
 
-    await updateWeekData(userId, "Malware Check");
+    await updateWeekData(userId, "MAC Address Lookup");
 
     if (!response.ok) {
       return res.json({
