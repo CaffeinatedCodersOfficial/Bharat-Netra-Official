@@ -17,8 +17,6 @@ export const getIPHistory = async (req, res) => {
       const url = `https://api.viewdns.info/iphistory/?domain=${domain}&apikey=${apiKey}&output=json`;
       const { data } = await axios.get(url);
 
-      await updateWeekData(userId, "IP History Lookup");
-
       if (data.response && data.response.records) {
         records = data.response.records
           .map((r) => ({
