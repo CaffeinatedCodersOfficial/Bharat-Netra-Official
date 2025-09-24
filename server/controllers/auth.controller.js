@@ -152,7 +152,7 @@ export const login = async (req, res) => {
         role: user.role,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "1d" },
     );
 
     res.cookie("token", token, {
@@ -163,6 +163,10 @@ export const login = async (req, res) => {
     });
 
     res.json({ success: true, message: "Login successfull." });
+
+    const getUser = await User.findById(user._id);
+    getUser.activeSessions += 1;
+    await getUser.save();
   } catch (error) {
     res.json({ success: false, message: error.message });
   }

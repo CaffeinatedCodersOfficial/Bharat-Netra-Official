@@ -45,12 +45,12 @@ const userSchema = new mongoose.Schema(
     lastLogin: {
       type: Date,
     },
-    totalUsage: {
+    activeSessions: {
       type: Number,
       default: 0,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const User = mongoose.model("User", userSchema);

@@ -56,8 +56,10 @@ const DashboardPage = () => {
         })
       : "Never logged in", // fallback if no login yet
     accountStatus: isLoggedIn ? "Active" : "Inactive",
+    activeSessions: userData?.activeSessions,
   };
 
+  console.log(user);
   const stats = [
     {
       icon: Cpu,
@@ -69,8 +71,11 @@ const DashboardPage = () => {
       label: "Tools Used",
       value: todaysData?.toolsUsed.length ?? "N/A",
     },
-    { icon: Activity, label: "Active Sessions", value: "5" },
-    // { icon: Shield, label: "Security Flags", value: "2" },
+    {
+      icon: Activity,
+      label: "Active Sessions",
+      value: user?.activeSessions,
+    },
   ];
 
   const activities = [
@@ -287,22 +292,6 @@ const DashboardPage = () => {
             </ul>
           </div>
         </div>
-
-        {/* Security Alerts */}
-        {/* <div className="p-6 bg-black/40 border border-[#880bd1]/30 rounded-2xl relative"> */}
-        {/*   <div className="flex items-center gap-3 mb-4"> */}
-        {/*     <AlertTriangle className="w-6 h-6 text-red-500" /> */}
-        {/*     <h2 className="text-2xl font-bold">Security Alerts</h2> */}
-        {/*   </div> */}
-        {/*   <ul className="space-y-3"> */}
-        {/*     <li className="flex items-center gap-2 text-red-400"> */}
-        {/*       <Shield className="w-5 h-5" /> 2 suspicious API calls flagged */}
-        {/*     </li> */}
-        {/*     <li className="flex items-center gap-2 text-yellow-400"> */}
-        {/*       <Server className="w-5 h-5" /> System load higher than usual */}
-        {/*     </li> */}
-        {/*   </ul> */}
-        {/* </div> */}
       </div>
     </div>
   );

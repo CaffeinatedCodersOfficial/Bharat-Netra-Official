@@ -28,7 +28,7 @@ app.use(
       "http://localhost:5173",
       "https://official-bharat-netra.vercel.app",
     ],
-  })
+  }),
 );
 app.use(express.json());
 app.use(cookieParser());
