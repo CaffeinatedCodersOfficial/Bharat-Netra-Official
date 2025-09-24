@@ -29,7 +29,7 @@ const teamMembers = [
 
 const Team = () => {
   return (
-    <section className="relative w-full h-auto flex flex-col items-center justify-start px-6 py-20 bg-gradient-to-b from-black via-[#0a0016] to-black text-white overflow-hidden">
+    <section className="relative w-full h-auto flex flex-col items-center justify-start px-6 py-8 bg-gradient-to-b from-black via-[#0a0016] to-black text-white overflow-hidden">
       
       {/* Glow background */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(136,11,209,0.15),transparent_70%)]"></div>
