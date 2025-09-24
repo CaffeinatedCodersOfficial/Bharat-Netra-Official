@@ -70,7 +70,7 @@ const DashboardPage = () => {
       value: todaysData?.toolsUsed.length ?? "N/A",
     },
     { icon: Activity, label: "Active Sessions", value: "5" },
-    { icon: Shield, label: "Security Flags", value: "2" },
+    // { icon: Shield, label: "Security Flags", value: "2" },
   ];
 
   const activities = [
@@ -184,7 +184,7 @@ const DashboardPage = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="lg:col-span-2 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-2 grid sm:grid-cols-1 lg:grid-cols-3 gap-6">
           {stats.map((stat, i) => {
             const Icon = stat.icon;
             return (
@@ -259,7 +259,7 @@ const DashboardPage = () => {
       </div>
 
       {/* Recent Activity + Alerts */}
-      <div className="grid lg:grid-cols-2 gap-8 max-w-7xl mx-auto mt-12">
+      <div className="grid lg:grid-cols-1 gap-8 max-w-5xl mx-auto mt-12">
         {/* Recent Activity */}
         <div className="p-6 bg-black/40 border border-[#880bd1]/30 rounded-2xl relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-[#880bd1]/10 to-transparent opacity-50"></div>
@@ -289,20 +289,20 @@ const DashboardPage = () => {
         </div>
 
         {/* Security Alerts */}
-        <div className="p-6 bg-black/40 border border-[#880bd1]/30 rounded-2xl relative">
-          <div className="flex items-center gap-3 mb-4">
-            <AlertTriangle className="w-6 h-6 text-red-500" />
-            <h2 className="text-2xl font-bold">Security Alerts</h2>
-          </div>
-          <ul className="space-y-3">
-            <li className="flex items-center gap-2 text-red-400">
-              <Shield className="w-5 h-5" /> 2 suspicious API calls flagged
-            </li>
-            <li className="flex items-center gap-2 text-yellow-400">
-              <Server className="w-5 h-5" /> System load higher than usual
-            </li>
-          </ul>
-        </div>
+        {/* <div className="p-6 bg-black/40 border border-[#880bd1]/30 rounded-2xl relative"> */}
+        {/*   <div className="flex items-center gap-3 mb-4"> */}
+        {/*     <AlertTriangle className="w-6 h-6 text-red-500" /> */}
+        {/*     <h2 className="text-2xl font-bold">Security Alerts</h2> */}
+        {/*   </div> */}
+        {/*   <ul className="space-y-3"> */}
+        {/*     <li className="flex items-center gap-2 text-red-400"> */}
+        {/*       <Shield className="w-5 h-5" /> 2 suspicious API calls flagged */}
+        {/*     </li> */}
+        {/*     <li className="flex items-center gap-2 text-yellow-400"> */}
+        {/*       <Server className="w-5 h-5" /> System load higher than usual */}
+        {/*     </li> */}
+        {/*   </ul> */}
+        {/* </div> */}
       </div>
     </div>
   );
