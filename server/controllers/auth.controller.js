@@ -39,6 +39,7 @@ export const register = async (req, res) => {
     }
 
     let user = await User.findOne({ email });
+
     if (user) {
       return res.json({ success: false, message: "User already exists." });
     }
