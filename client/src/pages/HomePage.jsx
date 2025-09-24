@@ -32,9 +32,6 @@ const HomePage = () => {
       <div id="team" className="h-auto flex items-center justify-center">
         <Team/>
       </div>
-      <div className="h-auto flex items-center justify-center">
-        <Footer/>
-      </div>
     </div>
   );
 };
