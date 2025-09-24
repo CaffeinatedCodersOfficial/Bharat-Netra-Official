@@ -12,12 +12,7 @@ const tools = [
   "Malware Check",
   "Password Hash Breaker",
   "Port Scanner",
-  "Reverse IP Lookup",
-  "Reverse WHOIS Lookup",
-  "Bulk IP Lookup",
-  "Abuse Contact Lookup",
   "Email Header Analyzer",
-  "Reverse Image Search",
   "Email Validator",
 ];
 
@@ -199,9 +194,28 @@ const Terminal = () => {
     setInputValue("");
     setLoading(true);
 
-    try {
-
-      if (selectedTool === "Reverse IP Lookup") {
+          try {
+            if (selectedTool === "Email Header Analyzer") {
+        const res = await axios.post(
+          `${backendUrl}/api/email/header-analyser`,
+          { rawHeader: command }
+        );
+        if (res.data) {
+          setHistory((prev) => [
+            ...prev,
+            `Email Header Analysis Result:`,
+            JSON.stringify(res.data, null, 2),
+          ]);
+        } else {
+          setHistory((prev) => [
+            ...prev,
+            "No analysis result found for given header.",
+          ]);
+        }
+        setLoading(false);
+        return;
+      }
+      else if (selectedTool === "Reverse IP Lookup") {
         // POST { ip: command } to /api/ip/reverse-ip-lookup
         const res = await axios.post(
           `${backendUrl}/api/ip/reverse-ip-lookup`,
@@ -419,7 +433,7 @@ const Terminal = () => {
 
         <div className="flex-1 p-6 overflow-y-auto text-sm leading-relaxed">
           {!selectedTool ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 gap-4">
               {tools.map((tool, index) => (
                 <div
                   key={index}

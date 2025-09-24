@@ -15,6 +15,7 @@ import passwordBreakerRouter from "./routes/password.breaker.js";
 import reverseIpRouter from "./routes/reverseip.lookup.route.js";
 import authRouter from "./routes/auth.route.js";
 import userRouter from "./routes/user.routes.js";
+import emailHeaderRouter from "./routes/analyzeHeader.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -47,6 +48,7 @@ app.use("/api/macAddress/", macAddressLookupRouter);
 app.use("/api/carrier/", carrierRouter);
 app.use("/api/password/", passwordBreakerRouter);
 app.use("/api/reverseip/", reverseIpRouter);
+app.use("/api/email/", emailHeaderRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
