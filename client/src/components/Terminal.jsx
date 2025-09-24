@@ -30,11 +30,14 @@ const placeholders = {
   "Port Scanner": "Enter host and ports (example.com 80,443,8080)...",
   "Reverse IP Lookup": "Enter IP address (e.g., 8.8.8.8)...",
   "Reverse WHOIS Lookup": "Enter domain or email to perform reverse WHOIS...",
-  "Bulk IP Lookup": "Enter comma separated IPs or CIDR (e.g. 8.8.8.8,1.1.1.0/24)...",
+  "Bulk IP Lookup":
+    "Enter comma separated IPs or CIDR (e.g. 8.8.8.8,1.1.1.0/24)...",
   "Abuse Contact Lookup": "Enter IP or domain to find abuse contacts...",
-  "Malware Check": "Enter URL or file hash to check for malware (https://... or sha256)...",
+  "Malware Check":
+    "Enter URL or file hash to check for malware (https://... or sha256)...",
   "Email Header Analyzer": "Paste full email headers to analyze...",
-  "Mobile Carrier Lookup": "Enter phone number with country code (e.g. +919876543210)...",
+  "Mobile Carrier Lookup":
+    "Enter phone number with country code (e.g. +919876543210)...",
   "Reverse Image Search": "Enter image URL to perform reverse image search...",
   "Email Validator": "Enter email to validate (user@example.com)...",
   "MAC Address Lookup": "Enter MAC address (e.g. 00:1A:2B:3C:4D:5E)...",
@@ -129,12 +132,11 @@ ${res.whois.substring(0, 500)}${res.whois.length > 500 ? "...(truncated)" : ""}`
 
     if (res.virusTotal.raw?.data?.attributes?.last_analysis_results) {
       const dangerous = Object.entries(
-        res.virusTotal.raw.data.attributes.last_analysis_results
+        res.virusTotal.raw.data.attributes.last_analysis_results,
       ).filter(([_, v]) => v.category === "malicious");
       if (dangerous.length > 0) {
         lines.push(
-          "Malicious virus engines: " +
-            dangerous.map(([k]) => k).join(", ")
+          "Malicious virus engines: " + dangerous.map(([k]) => k).join(", "),
         );
       }
     }
@@ -200,13 +202,11 @@ const Terminal = () => {
     setLoading(true);
 
     try {
-
       if (selectedTool === "Reverse IP Lookup") {
         // POST { ip: command } to /api/ip/reverse-ip-lookup
-        const res = await axios.post(
-          `${backendUrl}/api/ip/reverse-ip-lookup`,
-          { ip: command }
-        );
+        const res = await axios.post(`${backendUrl}/api/ip/reverse-ip-lookup`, {
+          ip: command,
+        });
         if (res.data && res.data.ip) {
           setHistory((prev) => [...prev, displayIPReport(res.data)]);
         } else {
@@ -270,7 +270,7 @@ const Terminal = () => {
             setHistory((prev) => [
               ...prev,
               `${rec.ip}  |  First Seen: ${rec.firstSeen || "N/A"}  |  Last Seen: ${rec.lastSeen || "N/A"}`,
-            ])
+            ]),
           );
         } else {
           setHistory((prev) => [...prev, "No IP history found"]);
