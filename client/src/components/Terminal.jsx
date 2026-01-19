@@ -129,7 +129,7 @@ ${res.whois.substring(0, 500)}${res.whois.length > 500 ? "...(truncated)" : ""}`
       if (dangerous.length > 0) {
         lines.push(
           "Malicious virus engines: " +
-            dangerous.map(([k]) => k).join(", ")
+          dangerous.map(([k]) => k).join(", ")
         );
       }
     }
@@ -194,8 +194,8 @@ const Terminal = () => {
     setInputValue("");
     setLoading(true);
 
-          try {
-            if (selectedTool === "Email Header Analyzer") {
+    try {
+      if (selectedTool === "Email Header Analyzer") {
         const res = await axios.post(
           `${backendUrl}/api/email/header-analyser`,
           { rawHeader: command }

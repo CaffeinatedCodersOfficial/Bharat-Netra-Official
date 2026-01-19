@@ -1,10 +1,8 @@
 import express from "express";
 import { lookupIP } from "../controllers/reverseip.lookup.controller.js";
-import { isAuth } from "../middlewares/auth.middleware.js";
 
-const reverseIpRouter = express.Router();
+const router = express.Router();
 
-// GET /api/lookup/:ip
-reverseIpRouter.post("/lookup", isAuth, lookupIP);
+router.post("/reverse-ip-lookup", lookupIP);
 
-export default reverseIpRouter;
+export default router;

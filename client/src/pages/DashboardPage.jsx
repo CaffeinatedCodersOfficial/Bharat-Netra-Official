@@ -48,12 +48,12 @@ const DashboardPage = () => {
     role: userData?.role,
     lastLogin: userData?.lastLogin
       ? new Date(userData.lastLogin).toLocaleString("en-IN", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
       : "Never logged in", // fallback if no login yet
     accountStatus: isLoggedIn ? "Active" : "Inactive",
     activeSessions: userData?.activeSessions,
@@ -156,9 +156,14 @@ const DashboardPage = () => {
     <div className="relative w-full min-h-screen bg-gradient-to-b from-black via-[#0a0016] to-black text-white px-6 py-20 overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(136,11,209,0.15),transparent_70%)]"></div>
 
-      <h1 className="text-5xl font-bruno bg-gradient-to-r from-white via-[#880bd1] to-white bg-clip-text text-transparent text-center mb-12">
+      <h1 className="text-5xl font-bruno bg-gradient-to-r from-white via-[#880bd1] to-white bg-clip-text text-transparent text-center mb-4">
         Bharat Netra Dashboard
       </h1>
+      <div className="flex justify-center mb-12">
+        <span className="px-4 py-1 bg-[#880bd1]/20 border border-[#880bd1] text-[#880bd1] rounded-full text-sm font-semibold animate-pulse">
+          ✓ 1 Day Unlimited Access Active
+        </span>
+      </div>
 
       <div className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
         {/* User Info */}
@@ -279,11 +284,10 @@ const DashboardPage = () => {
                   <span className="text-gray-300">{act.time}</span>
                   <span>{act.action}</span>
                   <span
-                    className={`px-3 py-1 text-sm rounded-full ${
-                      act.status === "success"
-                        ? "bg-green-500/20 text-green-400"
-                        : "bg-red-500/20 text-red-400"
-                    }`}
+                    className={`px-3 py-1 text-sm rounded-full ${act.status === "success"
+                      ? "bg-green-500/20 text-green-400"
+                      : "bg-red-500/20 text-red-400"
+                      }`}
                   >
                     {act.status}
                   </span>

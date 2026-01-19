@@ -1,9 +1,8 @@
 import express from "express";
 import { scanPorts } from "../controllers/portScanner.controller.js";
-import { isAuth } from "../middlewares/auth.middleware.js";
 
-const portScannerRouter = express.Router();
+const router = express.Router();
 
-portScannerRouter.post("/scan-ports", isAuth, scanPorts);
+router.post("/scan-ports", scanPorts);
 
-export default portScannerRouter;
+export default router;

@@ -1,9 +1,8 @@
 import express from "express";
 import { validateEmail } from "../controllers/email.validator.controller.js";
-import { isAuth } from "../middlewares/auth.middleware.js";
 
-const emailValidatorRouter = express.Router();
+const router = express.Router();
 
-emailValidatorRouter.post("/validate-email", isAuth, validateEmail);
+router.post("/validate-email", validateEmail);
 
-export default emailValidatorRouter;
+export default router;

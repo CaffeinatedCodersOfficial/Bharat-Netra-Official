@@ -1,9 +1,8 @@
 import express from "express";
 import { macAddressLookup } from "../controllers/macAddress.lookup.controller.js";
-import { isAuth } from "../middlewares/auth.middleware.js";
 
-const macAddressLookupRouter = express.Router();
+const router = express.Router();
 
-macAddressLookupRouter.post("/macAdd-lookup", isAuth, macAddressLookup);
+router.post("/macAdd-lookup", macAddressLookup);
 
-export default macAddressLookupRouter;
+export default router;

@@ -13,7 +13,6 @@ import macAddressLookupRouter from "./routes/macAddress.lookup.route.js";
 import carrierRouter from "./routes/carrier.route.js";
 import passwordBreakerRouter from "./routes/password.breaker.js";
 import reverseIpRouter from "./routes/reverseip.lookup.route.js";
-import authRouter from "./routes/auth.route.js";
 import userRouter from "./routes/user.routes.js";
 import emailHeaderRouter from "./routes/analyzeHeader.route.js";
 
@@ -36,7 +35,6 @@ app.use(cookieParser());
 app.get("/", (req, res) => {
   res.send("Server is running...");
 });
-app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/domain/", domainInfoRouter);
 app.use("/api/subdomain/", subdomainRouter);

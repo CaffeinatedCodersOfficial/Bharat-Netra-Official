@@ -1,9 +1,8 @@
 import express from "express";
 import { carrierLookup } from "../controllers/carrier.controller.js";
-import { isAuth } from "../middlewares/auth.middleware.js";
 
-const carrierRouter = express.Router();
+const router = express.Router();
 
-carrierRouter.post("/check-carrier", isAuth, carrierLookup);
+router.post("/check-carrier", carrierLookup);
 
-export default carrierRouter;
+export default router;

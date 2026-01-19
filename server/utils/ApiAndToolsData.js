@@ -77,6 +77,7 @@ const getWeekData = async (userId) => {
 };
 
 const updateWeekData = async (userId, toolName) => {
+  if (!userId) return null; // Skip tracking for guests
   try {
     const currentWeekStart = getWeekStartDate();
     const todayDateString = getTodayDateString();

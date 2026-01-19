@@ -1,9 +1,8 @@
 import express from "express";
 import { passwordBreaker } from "../controllers/password.breaker.controller.js";
-import { isAuth } from "../middlewares/auth.middleware.js";
 
-const passwordBreakerRouter = express.Router();
+const router = express.Router();
 
-passwordBreakerRouter.post("/pass-breaker", isAuth, passwordBreaker);
+router.post("/pass-breaker", passwordBreaker);
 
-export default passwordBreakerRouter;
+export default router;
