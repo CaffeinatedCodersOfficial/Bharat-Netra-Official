@@ -6,7 +6,7 @@ export const AppContext = createContext();
 axios.defaults.withCredentials = true; // always send cookies
 
 export const AppContextProvider = ({ children }) => {
-  const backendUrl = "https://official-bharat-netra.vercel.app";
+  const backendUrl = "https://bharat-netra-official.onrender.com";
 
   const contextValue = {
     backendUrl,
